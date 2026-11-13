@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шахматы — игра, уроки, задания</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c2029">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#12141a;--panel:#1c2029;--panel2:#232836;--text:#e8eaf0;--muted:#9aa3b5;--line:#2e3444;--accent:#e0a23a;--good:#4cc38a;--bad:#e0665f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,'Segoe UI',Roboto,sans-serif;line-height:1.5}
+header{padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+header h1{font-size:18px}
+.navtabs{display:flex;gap:6px}
+.tabbtn{background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:7px 13px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600}
+.tabbtn.active{background:var(--accent);color:#1a1404;border-color:var(--accent)}
+.wrap{max-width:620px;margin:0 auto;padding:14px 14px 80px}
+.screen{display:none}.screen.active{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{font-size:16px;margin-bottom:8px}
+.menubtn{display:block;width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:18px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:14px;text-align:left}
+.menubtn:hover{border-color:var(--accent)}
+.menubtn .md{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:4px}
+.board-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);grid-auto-rows:1fr;width:min(92vw,560px);aspect-ratio:1/1;border:2px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.sq{display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;position:relative;line-height:1;font-size:clamp(22px,8vw,46px)}
+.sq.light{background:#e8e2cd}.sq.dark{background:#96a07d}
+.sq.sel{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
+.sq.hint::after{content:'';width:26%;height:26%;border-radius:50%;background:rgba(224,162,58,.55);position:absolute}
+.sq.hint2::after{content:'';width:100%;height:100%;border:3px solid rgba(224,162,58,.7);border-radius:50%;position:absolute;box-sizing:border-box}
+.sq.lastf,.sq.lastt{background:rgba(224,162,58,.30)!important}
+.sq .pw{color:#ffffff;text-shadow:2px 0 0 #2b2b2b,-2px 0 0 #2b2b2b,0 2px 0 #2b2b2b,0 -2px 0 #2b2b2b,1px 1px 0 #2b2b2b,-1px -1px 0 #2b2b2b,1px -1px 0 #2b2b2b,-1px 1px 0 #2b2b2b}
+.sq .pb{color:#5a3d26;text-shadow:1px 1px 0 rgba(0,0,0,.25)}
+.playerbar{display:flex;gap:8px;width:100%;margin-bottom:6px}
+.player{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center}
+.player.active{border-color:var(--accent);background:rgba(224,162,58,.12)}
+.player .nm{font-weight:700;font-size:14px}
+.player .mat{font-size:12px;color:var(--muted)}
+.status{font-size:14px;font-weight:600;text-align:center;padding:8px 12px;background:var(--panel2);border-radius:10px;width:100%}
+.status.warn{color:var(--accent)}
+.status.tie{color:var(--muted)}
+.status.end{color:var(--good)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;width:100%;justify-content:center;margin-top:8px}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 16px;font-size:14px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#1a1404;border-color:var(--accent)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50}
+.overlay.show{display:flex}
+.overlay .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;max-width:320px;width:90%}
+.overlay .box h3{margin-bottom:12px;font-size:15px}
+.promopts{display:flex;gap:12px;justify-content:center}
+.promo{background:var(--panel2);border:1px solid var(--line);border-radius:10px;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer}
+.promo:hover{border-color:var(--accent)}
+.promo .pb{color:#5a3d26}.promo .pw{color:#fff;text-shadow:1px 0 0 #333,-1px 0 0 #333,0 1px 0 #333,0 -1px 0 #333}
+.lesson{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer}
+.lesson:hover{border-color:var(--accent)}
+.lesson .lt{font-weight:700;font-size:15px}
+.lesson .ld{color:var(--muted);font-size:13px;margin-top:4px}
+.lesson .lbadge{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:2px 10px;font-size:11px;margin-right:6px;color:var(--muted)}
+.lesson .lbadge.done{background:rgba(76,195,138,.15);color:var(--good);border-color:var(--good)}
+.lesson-screen{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.lesson-screen h2{font-size:17px;margin-bottom:10px}
+.lesson-screen .content{font-size:14px;line-height:1.75;white-space:pre-wrap}
+.task{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+.task .tt{font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.task .tt .tip{background:rgba(224,162,58,.15);color:var(--accent);border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700}
+.task .td{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.6}
+.task .btn{width:100%;margin-top:10px}
+.feedback{font-size:13px;margin-top:8px;padding:8px;border-radius:8px;display:none}
+.feedback.ok{display:block;background:rgba(76,195,138,.12);color:var(--good)}
+.feedback.no{display:block;background:rgba(224,102,95,.12);color:var(--bad)}
+.taskprogress{text-align:center;color:var(--muted);font-size:13px;margin-bottom:10px}
+.back{width:100%;margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>♟ Шахматы</h1>
+  <div class="navtabs">
+    <button class="tabbtn active" onclick="goMenu()">Меню</button>
+    <button class="tabbtn" onclick="goGame()">Игра</button>
+    <button class="tabbtn" onclick="goLessons()">Уроки</button>
+    <button class="tabbtn" id="installBtn" onclick="promptInstall()" style="display:none">📲 Установить</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="sc-menu" class="screen active">
+    <div class="card">
+      <h2>Что хочешь делать?</h2>
+      <button class="menubtn" onclick="startGame()">♞ Играть вдвоём на одном устройстве<span class="md">Настоящие шахматы: двое против друг друга за одним телефоном. Офлайн.</span></button>
+      <button class="menubtn" onclick="showCpuSetup()">🤖 Играть с компьютером<span class="md">Выбери свой уровень и играй против машины.</span></button>
+      <button class="menubtn" onclick="goLessons()">📖 Уроки<span class="md">Короткие уроки по правилам игры.</span></button>
+      <button class="menubtn" onclick="goTasks()">🎯 Задания<span class="md">Упражнения: найди лучший ход, реши эндшпиль.</span></button>
+      <button class="menubtn" onclick="goDiag()">🧭 Диагностика<span class="md">Тест из задач — узнай свой уровень по темам.</span></button>
+    </div>
+  </div>
+
+  <div id="sc-cpusetup" class="screen">
+    <div class="card" id="cpuSetupMain">
+      <h2>🤖 Игра с компьютером</h2>
+      <div class="muted" style="margin-bottom:10px">Кто ты? Выбери категорию игрока.</div>
+      <button class="menubtn" onclick="showCpuDiff(0)">😀 Не умею играть<span class="md">Самые простые правила — подбери уровень.</span></button>
+      <button class="menubtn" onclick="showCpuDiff(1)">🙂 Начинающий<span class="md">Знаешь ходы, учишься думать.</span></button>
+      <button class="menubtn" onclick="showCpuDiff(2)">😃 Умею играть<span class="md">Играешь регулярно и неплохо.</span></button>
+      <button class="menubtn" onclick="showCpuDiff(3)">😎 Профессионал<span class="md">Твёрдая техника и расчёт.</span></button>
+      <button class="btn back" onclick="goMenu()">← Назад</button>
+    </div>
+    <div class="card" id="cpuSetupDiff" style="display:none">
+      <h2>Выбери сложность</h2>
+      <div class="muted" style="margin-bottom:10px" id="cpuDiffLabel"></div>
+      <button class="menubtn" onclick="startCpu(1)">🟢 Лёгкий<span class="md">Расслабленная партия, без жёсткого расчёта.</span></button>
+      <button class="menubtn" onclick="startCpu(2)">🟡 Средний<span class="md">Баланс силы и дружелюбности.</span></button>
+      <button class="menubtn" onclick="startCpu(3)">🔴 Сложный<span class="md">Максимальная сила компьютера.</span></button>
+      <button class="btn back" onclick="showCpuSetup()">← Назад к выбору игрока</button>
+    </div>
+  </div>
+
+  <div id="sc-diag" class="screen">
+    <div class="card">
+      <h2>🧭 Шахматная диагностика</h2>
+      <div class="muted" style="margin-bottom:10px">Выбери уровень сложности задач.</div>
+      <button class="menubtn" onclick="startDiag(1)">🟢 Лёгкий<span class="md">Простые задачи — отлично для начала.</span></button>
+      <button class="menubtn" onclick="startDiag(2)">🟡 Средний<span class="md">Задачи посложнее.</span></button>
+      <button class="menubtn" onclick="startDiag(3)">🔴 Сложный<span class="md">Хардкор: только мастера.</span></button>
+      <button class="btn back" onclick="goMenu()">← Назад</button>
+    </div>
+  </div>
+
+  <div id="sc-dtest" class="screen">
+    <div class="card">
+      <div class="progress" id="diagProgress"></div>
+      <div class="topic" id="diagTopic"></div>
+      <div class="q" id="diagQ"></div>
+      <div class="hint" id="diagHint"></div>
+      <div class="board-wrap">
+        <div class="board" id="diagBoard"></div>
+        <div class="side">
+          <div class="muted" style="font-size:13px;margin-bottom:8px;font-weight:600">Лучший ход:</div>
+          <div class="moves" id="diagMoves"></div>
+          <button class="btn primary" id="diagNext" disabled onclick="diagNext()">→ Дальше</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-dresult" class="screen">
+    <div class="card">
+      <h2>🧭 Разбор по темам</h2>
+      <div class="muted" id="diagResultOverview" style="margin-bottom:12px"></div>
+      <div id="diagTopicBreakdown"></div>
+      <div id="diagWeakAdvice" style="margin-top:14px;background:var(--panel2);border-radius:10px;padding:12px;font-size:13px;line-height:1.7"></div>
+      <div class="inline" style="margin-top:16px">
+        <button class="btn primary" onclick="goDiag()">Пройти ещё раз</button>
+        <button class="btn" onclick="goLessons()">Перейти к урокам</button>
+        <button class="btn" onclick="goMenu()">В меню</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-game" class="screen">
+    <div class="card">
+      <div class="playerbar">
+        <div class="player active" id="pWhite"><div class="nm">⬜ Белые</div><div class="mat" id="mWhite">+0</div></div>
+        <div class="player" id="pBlack"><div class="nm">⬛ Чёрные</div><div class="mat" id="mBlack">+0</div></div>
+      </div>
+      <div class="status" id="status">Белые ходят</div>
+      <div class="board-wrap"><div class="board" id="board"></div></div>
+      <div class="controls">
+        <button class="btn" onclick="undoMove()">↩ Отменить</button>
+        <button class="btn primary" onclick="startGame()">Новая партия</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-lessons" class="screen">
+    <div class="taskprogress">Уроки шахмат — выбери урок</div>
+    <div id="lessonsList"></div>
+  </div>
+
+  <div id="sc-lesson" class="screen">
+    <div id="lessonBody"></div>
+  </div>
+
+  <div id="sc-tasks" class="screen">
+    <div class="taskprogress" id="taskProgress">Задания — реши по одному</div>
+    <div id="tasksList"></div>
+  </div>
+</div>
+
+<div class="overlay" id="promoOverlay">
+  <div class="box">
+    <h3>Превращение пешки — выбери фигуру</h3>
+    <div class="promopts">
+      <div class="promo" onclick="promoPick(5)"><span class="pw">♛</span></div>
+      <div class="promo" onclick="promoPick(4)"><span class="pw">♜</span></div>
+      <div class="promo" onclick="promoPick(3)"><span class="pw">♝</span></div>
+      <div class="promo" onclick="promoPick(2)"><span class="pw">♞</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ШАХМАТНЫЙ ДВИЖОК
+   board[i] = {p:1..6, c:'w'|'b'} | null
+   turn:'w'|'b', ep: поле en-passant (-1), castling:{w:{k,q},b:{k,q}}
+   ============================================================ */
+var FILES='abcdefgh';
+var GLYPH={1:'\u265F',2:'\u265E',3:'\u265D',4:'\u265C',5:'\u265B',6:'\u265A'};
+var KNIGHT_D=[[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
+var LINE_D=[[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+
+var board, turn, ep, castling, hist, gameOver, resultText, selected, legalMoves_;
+
+function idx(s){return FILES.indexOf(s[0]) + (8-parseInt(s[1]))*8;}
+function sqname(i){return FILES[i%8]+(8-Math.floor(i/8));}
+function ib(f,r){return f>=0&&f<=7&&r>=0&&r<=7;}
+function cloneBoard(){var nb=new Array(64);for(var i=0;i<64;i++)nb[i]=board[i]?{p:board[i].p,c:board[i].c}:null;return nb;}
+function kingSq(b,c){for(var i=0;i<64;i++)if(b[i]&&b[i].p===6&&b[i].c===c)return i;return -1;}
+
+function attackedBy(b,target,by){
+  var f=target%8,R=Math.floor(target/8);
+  for(var a=0;a<8;a++){var d=KNIGHT_D[a],nf=f+d[0],nr=R+d[1];if(ib(nf,nr)){var i=nr*8+nf;if(b[i]&&b[i].c===by&&b[i].p===2)return true;}}
+  var pdr=(by==='w')?1:-1;
+  for(var df=-1;df<=1;df+=2){var nf=f+df,nr=R+pdr;if(ib(nf,nr)){var i=nr*8+nf;if(b[i]&&b[i].c===by&&b[i].p===1)return true;}}
+  for(var a=0;a<8;a++){ // король атакует только соседние поля
+    var d=LINE_D[a],nf=f+d[0],nr=R+d[1];
+    if(ib(nf,nr)){var i=nr*8+nf;if(b[i]&&b[i].c===by&&b[i].p===6)return true;}
+  }
+  for(var a=0;a<8;a++){
+    var d=LINE_D[a],nf=f+d[0],nr=R+d[1],diag=(d[0]!==0&&d[1]!==0);
+    while(ib(nf,nr)){
+      var i=nr*8+nf;
+      if(b[i]){if(b[i].c===by){var p=b[i].p;if((diag&&(p===3||p===5))||(!diag&&(p===4||p===5)))return true;}break;}
+      nf+=d[0];nr+=d[1];
+    }
+  }
+  return false;
+}
+function inCheck(b,c){var k=kingSq(b,c);if(k<0)return false;return attackedBy(b,k,(c==='w')?'b':'w');}
+
+function pseudoMoves(b,c){
+  var out=[];
+  for(var r=0;r<8;r++)for(var f=0;f<8;f++){
+    var i=r*8+f,p=b[i];
+    if(!p||p.c!==c)continue;
+    function add(nf,nr){if(ib(nf,nr)){var t=nr*8+nf;if(!b[t]||b[t].c!==c)out.push([i,nr*8+nf]);}}
+    if(p.p===1){
+      var dr=(c==='w')?-1:1,rr=r+dr;
+      if(rr>=0&&rr<=7&&!b[rr*8+f]){out.push([i,rr*8+f]);if((c==='w'&&r===6)||(c==='b'&&r===1)){var rr2=r+2*dr;if(!b[rr2*8+f]&&!b[(r+dr)*8+f])out.push([i,rr2*8+f]);}}
+      for(var df=-1;df<=1;df+=2){var nf=f+df;if(ib(nf,rr)&&b[rr*8+nf]&&b[rr*8+nf].c!==c)out.push([i,rr*8+nf]);}
+      for(var df=-1;df<=1;df+=2){var nf=f+df;if(ib(nf,rr)&&rr*8+nf===ep)out.push([i,rr*8+nf]);}
+    }
+    else if(p.p===2){for(var a=0;a<8;a++){var d=KNIGHT_D[a];add(f+d[0],r+d[1]);}}
+    else if(p.p===3||p.p===4||p.p===5){
+      var dirs=(p.p===3)?[[1,1],[1,-1],[-1,1],[-1,-1]]:(p.p===4)?[[1,0],[-1,0],[0,1],[0,-1]]:LINE_D;
+      for(var a=0;a<dirs.length;a++){var d=dirs[a],nf=f+d[0],nr=r+d[1];while(ib(nf,nr)){var t=nr*8+nf;if(!b[t])out.push([i,t]);else{if(b[t].c!==c)out.push([i,t]);break;}nf+=d[0];nr+=d[1];}}
+    }
+    else if(p.p===6){for(var a=0;a<8;a++){var d=LINE_D[a];add(f+d[0],r+d[1]);}}
+  }
+  return out;
+}
+function applyOn(b,from,to,promo,epd,castd){
+  var nb=new Array(64);for(var i=0;i<64;i++)nb[i]=b[i]?{p:b[i].p,c:b[i].c}:null;
+  var pc=nb[from];if(!pc)return null;
+  var isKing=pc.p===6,isPawn=pc.p===1;
+  var epn=-1;
+  if(isKing&&to-from===2){nb[from+1]={p:4,c:pc.c};nb[from+3]=null;}
+  if(isKing&&to-from===-2){nb[from+1]={p:4,c:pc.c};nb[from-4]=null;}
+  if(isPawn&&to===epd&&Math.abs(to-from)!==8&&Math.abs(to-from)!==16){nb[to+(pc.c==='w'?8:-8)]=null;}
+  if(isPawn&&Math.abs(to-from)===16){epn=to+(pc.c==='w'?8:-8);}
+  var promoTo=(isPawn&&(to<8||to>=56));
+  nb[to]={p:(promoTo?(promo||5):pc.p),c:pc.c};
+  nb[from]=null;
+  var castn={w:{k:castd.w.k,q:castd.w.q},b:{k:castd.b.k,q:castd.b.q}};
+  if(isKing&&pc.c==='w'){castn.w.k=false;castn.w.q=false;}
+  if(isKing&&pc.c==='b'){castn.b.k=false;castn.b.q=false;}
+  var corners=[[0,0,'w','q'],[7,0,'w','k'],[0,7,'b','q'],[7,7,'b','k']];
+  for(var c=0;c<4;c++){var cf=corners[c][0],cr=corners[c][1],cc=corners[c][2],ss=corners[c][3],ci=cr*8+cf;if(ci===from||ci===to)castn[cc][ss]=false;}
+  return {nb:nb,epn:epn,castn:castn};
+}
+function legalMoves(color){
+  color=color||turn;
+  var res=[],pm=pseudoMoves(board,color);
+  for(var i=0;i<pm.length;i++){
+    var from=pm[i][0],to=pm[i][1],pc=board[from],promoReq=(pc.p===1&&(to<8||to>=56));
+    if(promoReq){for(var q=0;q<4;q++){var pp=[5,4,3,2][q];var r=applyOn(board,from,to,pp,ep,castling);if(r&&!inCheck(r.nb,color))res.push({from:from,to:to,promo:pp});}}
+    else{var r=applyOn(board,from,to,0,ep,castling);if(r&&!inCheck(r.nb,color))res.push({from:from,to:to,promo:0});}
+  }
+  var k=kingSq(board,color),rank=(color==='w')?7:0;
+  if(k===rank*8+4){
+    var rights=castling[color];
+    if(rights.k&&board[rank*8+5]===null&&board[rank*8+6]===null&&board[rank*8+7]&&board[rank*8+7].p===4&&board[rank*8+7].c===color){
+      if(!inCheck(board,color)&&!inCheck(applyOn(board,rank*8+4,rank*8+5,0,ep,castling).nb,color)&&!inCheck(applyOn(board,rank*8+4,rank*8+6,0,ep,castling).nb,color)){res.push({from:rank*8+4,to:rank*8+6,promo:0,castle:'k'});}
+    }
+    if(rights.q&&board[rank*8+3]===null&&board[rank*8+2]===null&&board[rank*8+1]===null&&board[rank*8+0]&&board[rank*8+0].p===4&&board[rank*8+0].c===color){
+      if(!inCheck(board,color)&&!inCheck(applyOn(board,rank*8+4,rank*8+3,0,ep,castling).nb,color)&&!inCheck(applyOn(board,rank*8+4,rank*8+2,0,ep,castling).nb,color)){res.push({from:rank*8+4,to:rank*8+2,promo:0,castle:'q'});}
+    }
+  }
+  return res;
+}
+function makeMove(m){
+  if(gameOver)return false;
+  var color=turn,r=applyOn(board,m.from,m.to,m.promo||0,ep,castling);
+  if(!r||inCheck(r.nb,color))return false;
+  hist.push({board:cloneBoard(),turn:turn,ep:ep,castling:JSON.parse(JSON.stringify(castling))});
+  board=r.nb;turn=(color==='w')?'b':'w';ep=r.epn;castling=r.castn;
+  selected=-1;
+  return true;
+}
+function lookupLegalMove(from,to){var lm=legalMoves();for(var i=0;i<lm.length;i++){if(lm[i].from===from&&lm[i].to===to)return lm[i];}return null;}
+
+/* ============ РЕНДЕР ============ */
+function mat(text){
+  return text;
+}
+function scoreColor(color){return 0;}
+function renderGame(){
+  // игроки
+  document.getElementById('pWhite').classList.toggle('active',turn==='w');
+  document.getElementById('pBlack').classList.toggle('active',turn==='b');
+  // статус
+  var st=document.getElementById('status');
+  var lm=legalMoves();
+  var over=false,txt;
+  if(!lm.length){
+    if(inCheck(board,turn)){over=true;txt=(turn==='w')?'Мат! Победили чёрные ✔':'Мат! Победили белые ✔';}
+    else{over=true;txt='Пат — ничья.';}
+  }else if(inCheck(board,turn)){txt=(turn==='w')?'Белые ходят — ШАХ':'Чёрные ходят — ШАХ';}
+  else{txt=(turn==='w')?'Белые ходят':'Чёрные ходят';}
+  st.textContent=txt;
+  st.className='status '+(over?'end':(inCheck(board,turn)?'warn':''));
+  // доска
+  var el=document.getElementById('board');el.innerHTML='';
+  var curMoves=(selected>=0)?legalMoves():[];
+  var ksq=kingSq(board,turn);
+  var checkSq=(inCheck(board,turn)&&ksq>=0)?ksq:-1;
+  var lastH=hist.length?hist[hist.length-1]:null;
+  for(var r=0;r<8;r++)for(var f=0;f<8;f++){
+    var i=r*8+f,d=document.createElement('div');
+    d.className='sq '+((r+f)%2?'dark':'light');
+    if(i===selected)d.classList.add('sel');
+    if(checkSq===i)d.classList.add('hint2'); 
+    var isTarget=false;
+    for(var m=0;m<curMoves.length;m++){if(curMoves[m].to===i){isTarget=true;break;}}
+    if(isTarget){d.classList.add(board[i]?'hint2':'hint');}
+    var p=board[i];
+    if(p)d.innerHTML='<span class="'+(p.c==='w'?'pw':'pb')+'">'+GLYPH[p.p]+'</span>';
+    d.dataset.i=i;
+    d.addEventListener('click',(function(ii){return function(){sqClick(ii);};})(i));
+    el.appendChild(d);
+  }
+}
+function sqClick(i){
+  if(gameOver)return;
+  if(selected>=0){
+    var m=lookupLegalMove(selected,i);
+    if(m&&m.promo&&(board[i]===null)&&((i<8)||(i>=56))){
+      // превращение с выбором
+      selPromo=m;
+      document.getElementById('promoOverlay').classList.add('show');
+      return;
+    }
+    if(m){makeMove(m);renderGame();return;}
+    if(board[i]&&board[i].c===turn){selected=i;renderGame();return;}
+    selected=-1;
+  }else{
+    if(board[i]&&board[i].c===turn){selected=i;}
+  }
+  renderGame();
+}
+var selPromo=null;
+function promoPick(pp){
+  document.getElementById('promoOverlay').classList.remove('show');
+  if(selPromo){selPromo.promo=pp;makeMove(selPromo);selPromo=null;renderGame();}
+}
+function undoMove(){if(hist.length){var s=hist.pop();board=s.board;turn=s.turn;ep=s.ep;castling=s.castling;gameOver=false;resultText='';}renderGame();}
+
+/* ============================================================
+   ИИ-движок (negamax) — игра против компьютера
+   Уровни: 0 лёгкий (случайный), 1 средний (глубина 2),
+           2 сложный (глубина 3), 3 профи (глубина 3 + PST, снижение ветвления).
+   legalMovesState(b,color,ep,cast) — как legalMoves(), но на произвольном состоянии.
+   ============================================================ */
+function pseudoMovesOn(b,c,epd){
+  var out=[];
+  for(var r=0;r<8;r++)for(var f=0;f<8;f++){
+    var i=r*8+f,p=b[i];
+    if(!p||p.c!==c)continue;
+    function add(nf,nr){if(ib(nf,nr)){var t=nr*8+nf;if(!b[t]||b[t].c!==c)out.push([i,nr*8+nf]);}}
+    if(p.p===1){
+      var dr=(c==='w')?-1:1,rr=r+dr;
+      if(rr>=0&&rr<=7&&!b[rr*8+f]){out.push([i,rr*8+f]);if((c==='w'&&r===6)||(c==='b'&&r===1)){var rr2=r+2*dr;if(!b[rr2*8+f]&&!b[(r+dr)*8+f])out.push([i,rr2*8+f]);}}
+      for(var df=-1;df<=1;df+=2){var nf=f+df;if(ib(nf,rr)&&b[rr*8+nf]&&b[rr*8+nf].c!==c)out.push([i,rr*8+nf]);}
+      for(var df=-1;df<=1;df+=2){var nf=f+df;if(ib(nf,rr)&&rr*8+nf===epd)out.push([i,rr*8+nf]);}
+    }
+    else if(p.p===2){for(var a=0;a<8;a++){var d=KNIGHT_D[a];add(f+d[0],r+d[1]);}}
+    else if(p.p===3||p.p===4||p.p===5){
+      var dirs=(p.p===3)?[[1,1],[1,-1],[-1,1],[-1,-1]]:(p.p===4)?[[1,0],[-1,0],[0,1],[0,-1]]:LINE_D;
+      for(var a=0;a<dirs.length;a++){var d=dirs[a],nf=f+d[0],nr=r+d[1];while(ib(nf,nr)){var t=nr*8+nf;if(!b[t])out.push([i,t]);else{if(b[t].c!==c)out.push([i,t]);break;}nf+=d[0];nr+=d[1];}}
+    }
+    else if(p.p===6){for(var a=0;a<8;a++){var d=LINE_D[a];add(f+d[0],r+d[1]);}}
+  }
+  return out;
+}
+function applyOnState(b,from,to,promo,epd,castd){
+  var nb=cloner(b),pc=nb[from];if(!pc)return null;
+  var isKing=pc.p===6,isPawn=pc.p===1,epn=-1;
+  if(isKing&&to-from===2){nb[from+1]={p:4,c:pc.c};nb[from+3]=null;}
+  if(isKing&&to-from===-2){nb[from+1]={p:4,c:pc.c};nb[from-4]=null;}
+  if(isPawn&&to===epd&&Math.abs(to-from)!==8&&Math.abs(to-from)!==16){nb[to+(pc.c==='w'?8:-8)]=null;}
+  if(isPawn&&Math.abs(to-from)===16){epn=to+(pc.c==='w'?8:-8);}
+  nb[to]={p:((isPawn&&(to<8||to>=56))?(promo||5):pc.p),c:pc.c};nb[from]=null;
+  var castn={w:{k:castd.w.k,q:castd.w.q},b:{k:castd.b.k,q:castd.b.q}};
+  if(isKing&&pc.c==='w'){castn.w.k=false;castn.w.q=false;}
+  if(isKing&&pc.c==='b'){castn.b.k=false;castn.b.q=false;}
+  var corners=[[0,0,'w','q'],[7,0,'w','k'],[0,7,'b','q'],[7,7,'b','k']];
+  for(var z=0;z<4;z++){var cf=corners[z][0],cr=corners[z][1],ci=cr*8+cf;if(ci===from||ci===to)castn[corners[z][2]][corners[z][3]]=false;}
+  return {nb:nb,epn:epn,castn:castn};
+}
+function cloner(b){var n=new Array(64);for(var i=0;i<64;i++)n[i]=b[i]?{p:b[i].p,c:b[i].c}:null;return n;}
+// легальные ходы для произвольного состояния {b,c,ep,cast}
+function legalState(st){
+  var b=st.b,c=st.c,epd=st.ep,castd=st.cast,res=[],pm=pseudoMovesOn(b,c,epd);
+  for(var i=0;i<pm.length;i++){
+    var from=pm[i][0],to=pm[i][1],pc=b[from],pr=(pc.p===1&&(to<8||to>=56));
+    if(pr){for(var q=0;q<4;q++){var pp=[5,4,3,2][q],r=applyOnState(b,from,to,pp,epd,castd);if(r&&!inCheck(r.nb,c))res.push({from:from,to:to,pr:pp});}}
+    else{var r=applyOnState(b,from,to,0,epd,castd);if(r&&!inCheck(r.nb,c))res.push({from:from,to:to,pr:0});}
+  }
+  var k=kingSq(b,c),rank=(c==='w')?7:0;
+  if(k===rank*8+4){
+    var rt=castd[c];
+    if(rt.k&&b[rank*8+5]===null&&b[rank*8+6]===null&&b[rank*8+7]&&b[rank*8+7].p===4&&b[rank*8+7].c===c&&
+       !inCheck(b,c)&&!inCheck(applyOnState(b,rank*8+4,rank*8+5,0,epd,castd).nb,c)&&!inCheck(applyOnState(b,rank*8+4,rank*8+6,0,epd,castd).nb,c))res.push({from:rank*8+4,to:rank*8+6,pr:0,castle:'k'});
+    if(rt.q&&b[rank*8+1]===null&&b[rank*8+2]===null&&b[rank*8+3]===null&&b[rank*8+0]&&b[rank*8+0].p===4&&b[rank*8+0].c===c&&
+       !inCheck(b,c)&&!inCheck(applyOnState(b,rank*8+4,rank*8+3,0,epd,castd).nb,c)&&!inCheck(applyOnState(b,rank*8+4,rank*8+2,0,epd,castd).nb,c))res.push({from:rank*8+4,to:rank*8+2,pr:0,castle:'q'});
+  }
+  return res;
+}
+// Оценка позиции (материал + PST). Возвращает со стороны белых.
+var PST_P={}/**/,N={},B={},R={},Q={},K,KE;
+(function(){
+  function row(v){return v;}
+  // мини-таблицы (индекс с точки зрения игрока, белые внизу 0..63)
+  PST_P=[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0];
+  N=[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50];
+  B=[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,10,10,5,0,-10,-10,5,5,10,10,5,5,-10,-10,0,10,10,10,10,0,-10,-10,10,10,10,10,10,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20];
+  R=[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0];
+  Q=[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20];
+  K=[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20];
+  KE=[-50,-40,-30,-20,-20,-30,-40,-50,-30,-20,-10,0,0,-10,-20,-30,-30,-10,20,30,30,20,-10,-30,-30,-10,30,40,40,30,-10,-30,-30,-10,30,40,40,30,-10,-30,-30,-10,20,30,30,20,-10,-30,-30,-30,0,0,0,0,-30,-30,-50,-30,-30,-30,-30,-30,-50,-50];
+})();
+function pstIdx(sq,white){var r=Math.floor(sq/8),f=sq%8;return white?((7-r)*8+f):(r*8+f);}
+function evalBoard(b){
+  var s=0,end=true,cnt=0;
+  for(var i=0;i<64;i++){var p=b[i];if(p&&p.p!==6){cnt+=AI_VAL[p.p];}}
+  end = cnt<=1300;
+  for(var i=0;i<64;i++){
+    var p=b[i];if(!p)continue;
+    var idx=pstIdx(i,p.c==='w'),pstv=0;
+    if(p.p===1)pstv=PST_P[idx];else if(p.p===2)pstv=N[idx];else if(p.p===3)pstv=B[idx];else if(p.p===4)pstv=R[idx];else if(p.p===5)pstv=Q[idx];else pstv=(end?KE:K)[idx];
+    var v=AI_VAL[p.p]+pstv;
+    s+= p.c==='w'?v:-v;
+  }
+  return s;
+}
+var AI_VAL={1:100,2:320,3:330,4:500,5:900,6:0};
+function mvOrder(m){return (m.capture?1000:(m.givesCheck?800:0))-Math.abs(m.to%4);} // упрощённо
+function searchAI(st,depth,alpha,beta){
+  var moves=legalState(st);
+  if(!moves.length){ if(inCheck(st.b,st.c)) return -100000-(30-depth); return 0; }
+  if(depth===0){ return evalBoard(st.b)*(st.c==='w'?1:-1); }
+  var b=st.b,c=st.c;
+  // порядок ходов: сначала взятия
+  var scored=[];
+  for(var i=0;i<moves.length;i++){var m=moves[i];scored.push({m:m,o:(b[m.to]?1000:0)});}
+  scored.sort(function(x,y){return y.o-x.o;});
+  var best=-1e9;
+  for(var i=0;i<scored.length;i++){
+    var r=applyOnState(b,scored[i].m.from,scored[i].m.to,scored[i].m.pr||0,st.ep,st.cast);
+    var v=-searchAI({b:r.nb,c:(c==='w'?'b':'w'),ep:r.epn,cast:r.castn},depth-1,-beta,-alpha);
+    if(v>best)best=v;
+    if(v>alpha)alpha=v;
+    if(alpha>=beta)break;
+  }
+  return best;
+}
+var aiDifficulty=1; // 0 легкий random, 1 средний d2, 2 сложный d3, 3 профи d3+PST(уже есть)
+function aiMakeMove(){
+  if(gameOver)return;
+  var color=turn;
+  if(aiDifficulty===0){
+    var mvs=legalMoves();
+    if(mvs.length){makeMove(mvs[Math.floor(Math.random()*mvs.length)]);}
+    renderGame();scheduleAI();return;
+  }
+  var depth = aiDifficulty===1?2:(aiDifficulty===2?3:4);
+  var moves=legalMoves();
+  if(!moves.length){renderGame();return;}
+  var scored=[];
+  for(var i=0;i<moves.length;i++){
+    var m=moves[i];
+    var r=applyOn(board,m.from,m.to,m.promo||0,ep,castling);
+    var v=-searchAI({b:r.nb,c:(color==='w'?'b':'w'),ep:r.epn,cast:r.castn},depth-1,-1e9,1e9);
+    scored.push({m:m,v:v});
+  }
+  // лучшее с лёгким шумом для разнообразия на среднем
+  scored.sort(function(x,y){return y.v-x.v;});
+  var pick=scored[0].m;
+  makeMove(pick);
+  renderGame();
+  scheduleAI();
+}
+function scheduleAI(){
+  if(gameOver)return;
+  if(gameMode==='cpu' && turn===cpuColor){
+    setTimeout(function(){ aiMakeMove(); }, 350);
+  }
+}
+var gameMode='pvp'; // pvp | cpu
+var cpuColor='b';   // какой цвет у компьютера
+function setCpu(trueCpu){
+  gameMode='cpu'; cpuColor=trueCpu?'b':'w';
+}
+
+/* ============ НАВИГАЦИЯ ============ */
+function show(id){var scs=['sc-menu','sc-cpusetup','sc-game','sc-lessons','sc-lesson','sc-tasks','sc-diag','sc-dtest','sc-dresult'];scs.forEach(function(s){var el=document.getElementById(s);if(el)el.classList.toggle('active',s===id);});}
+function goMenu(){show('sc-menu');markNav(0);}
+function goGame(){show('sc-game');markNav(1);renderGame();}
+function goLessons(){show('sc-lessons');markNav(2);renderLessons();}
+function markNav(n){var ts=document.querySelectorAll('.tabbtn');for(var i=0;i<ts.length;i++)ts[i].classList.toggle('active',i===n);}
+function startGame(){
+  fresh();
+  if(gameMode==='cpu'){ setCpuPrompt(); } // если до этого была сессия с компом, покажем выбор
+  gameMode='pvp';
+  show('sc-game');markNav(1);renderGame();
+}
+function showCpuSetup(){
+  document.getElementById('cpuSetupMain').style.display='';
+  document.getElementById('cpuSetupDiff').style.display='none';
+  show('sc-cpusetup');markNav(1);
+}
+var cpuCategory=0;
+function showCpuDiff(cat){
+  cpuCategory=cat;
+  var labels=['😀 Не умею играть','🙂 Начинающий','😃 Умею играть','😎 Профессионал'];
+  document.getElementById('cpuDiffLabel').textContent=labels[cat]+' — теперь выбери сложность компьютера.';
+  document.getElementById('cpuSetupMain').style.display='none';
+  document.getElementById('cpuSetupDiff').style.display='';
+}
+function startCpu(difficulty){
+  // difficulty: 1 лёгкий, 2 средний, 3 сложный. Категория задаёт базовую силу.
+  aiDifficulty=difficulty; // 1,2,3 -> глубина ИИ
+  fresh();
+  gameMode='cpu'; cpuColor='b';
+  show('sc-game');markNav(1);renderGame();
+  scheduleAI();
+}
+function setCpuPrompt(){ cpuColor='b'; }
+function goDiag(){ show('sc-diag'); markNav(2); }
+
+function fresh(){
+  board=new Array(64).fill(null);
+  turn='w';ep=-1;castling={w:{k:true,q:true},b:{k:true,q:true}};hist=[];gameOver=false;resultText='';selected=-1;
+  var order='RNBQKBNR',map={R:4,N:2,B:3,Q:5,K:6};
+  for(var f=0;f<8;f++){
+    board[0*8+f]={p:map[order[f]],c:'b'};
+    board[1*8+f]={p:1,c:'b'};
+    board[6*8+f]={p:1,c:'w'};
+    board[7*8+f]={p:map[order[f]],c:'w'};
+  }
+}
+function freshFromFen(fen){
+  board=new Array(64).fill(null);turn='w';ep=-1;castling={w:{k:true,q:true},b:{k:true,q:true}};hist=[];gameOver=false;resultText='';selected=-1;
+  var map={P:[1,'w'],N:[2,'w'],B:[3,'w'],R:[4,'w'],Q:[5,'w'],K:[6,'w'],p:[1,'b'],n:[2,'b'],b:[3,'b'],r:[4,'b'],q:[5,'b'],k:[6,'b']};
+  var rows=fen.split(' ')[0].split('/');
+  for(var r=0;r<8;r++){var c=0;for(var k=0;k<rows[r].length;k++){var ch=rows[r][k];if(ch>='1'&&ch<='8')c+=parseInt(ch);else{var mm=map[ch];if(mm){board[r*8+c]={p:mm[0],c:mm[1]};}c++;}}}
+}
+
+/* ============ УРОКИ (по уровням) ============
+   lvl: 1 = Начальный, 2 = Средний (базовая тактика), 3 = Продвинутая тактика
+   tag: короткая пометка (Правила / Тактика / Дебют / Эндшпиль) */
+var LESSONS=[
+  // ---------- УРОВЕНЬ 1: НАЧАЛЬНЫЙ ----------
+  {t:'Как ходят фигуры',lv:1,tag:'Правила',
+   d:'Пешка, конь, слон, ладья, ферзь, король — как ходит каждая и сколько стоит.',
+   c:'Каждая фигура ходит по-своему.\n\n♟ ПЕШКА (1 очко) — ходит вперёд на 1 поле, первым ходом можно на 2. Бьёт наискосок вперёд на 1 поле. Дойдя до конца доски, превращается в ферзя (или ладью, слона, коня).\n\n♞ КОНЬ (3 очка) — ходит буквой «Г»: на 2 поля в одну сторону и 1 в другую. Единственный перепрыгивает через фигуры.\n\n♗ СЛОН (3 очка) — ходит по диагоналям на любое число полей.\n\n♜ ЛАДЬЯ (5 очков) — ходит по вертикалям и горизонталям.\n\n♛ ФЕРЗЬ (9 очков) — самая сильная. Ходит как ладья и слон вместе.\n\n♚ КОРОЛЬ — самая важная. Ходит на 1 поле в любую сторону. Потеря короля — проигрыш.'},
+  {t:'Шах, мат и пат',lv:1,tag:'Правила',
+   d:'Главные понятия: как оканчивается партия.',
+   c:'ШАХ — нападение на короля. При шахе надо защититься: отойти, закрыться фигурой или побить нападающего.\n\nМАТ — шах, от которого нельзя защититься. Это победа.\n\nПАТ — у стороны нет ни одного хода, но король не под шахом. Это НИЧЬЯ.\n\n✏ ЗАПОМНИ: цель игры — поставить мат королю соперника.'},
+  {t:'Специальные ходы',lv:1,tag:'Правила',
+   d:'Рокировка, взятие на проходе, превращение пешки.',
+   c:'РОКИРОВКА — король и ладья ходят одновременно (один раз за партию). Король идёт на 2 поля к ладье, ладья перепрыгивает через него. Нельзя при шахе, если король ходил, если поля между ними заняты или король проходит под шах.\n\nВЗЯТИЕ НА ПРОХОДЕ — пешка бьёт пешку соперника, которая прыгнула мимо на 2 поля, как будто та прошла на 1. Возможно только сразу на следующем ходу.\n\nПРЕВРАЩЕНИЕ — пешка на последней линии становится ферзём (обычно).'},
+  {t:'Ценность фигур',lv:1,tag:'Основы',
+   d:'Чем «дороже» фигура, тем важнее сберечь её.',
+   c:'В шахматах фигуры имеют примерную ценность:\n\n♟ Пешка — 1 очко (самая дешёвая).\n♞ Конь — 3 очка.\n♗ Слон — 3 очка.\n♜ Ладья — 5 очков.\n♛ Ферзь — 9 очков (самая ценная).\n♚ Король — бесценен.\n\n✏ ПРАВИЛО «МЕНЯЮ»: прежде чем бить фигуру, сравни её цену с ценой своей. Слона на коня — равно. Ладью за слона — выгодно. Ферзя за ладью — проигрышно (если это не ведёт к мату).\n\nХороший приём: потяни к себе фигуру на 2 хода — ты её уже «взял» в счёте, а вот вернуть её сопернику нельзя без потери темпа.'},
+  {t:'Как начинать: дебют за 5 шагов',lv:1,tag:'Дебют',
+   d:'Небольшой план на первые 10 ходов.',
+   c:'Первые ходы решают половину партии. Правила дебюта:\n\n1. РАЗВИВАЙ ФИГУРЫ — выводи коней и слонов, а не ходи только пешками.\n\n2. БОРИСЬ ЗА ЦЕНТР — пешки e4/d4 и контролируй центральные поля.\n\n3. РОКИРУЙСЯ РАНО — спрячь короля за пешки (обычно на 4-7 ходу).\n\n4. НЕ ВЫВОДИ ФЕРЗЯ РАНО — его будут бить и гонять, ты потеряешь темп.\n\n5. НЕ ХОДИ ОДНОЙ ПЕШКОЙ ДВАЖДЫ, пока не развиты остальные.\n\nХорошие первые ходы: белые — e4 или d4; чёрные — e5 или d5.'},
+  {t:'Король и ферзь против короля: мат',lv:1,tag:'Эндшпиль',
+   d:'Как довести мат ферзём при поддержке короля.',
+   c:'Это важнейшая техника. План:\n\n1. Подведи ферзя близко — он «загоняет» чужого короля к краю доски.\n\n2. Отрезай короля ферзём — на расстоянии одного поля (ферзь «съедает» поля вокруг чужого короля).\n\n3. Подведи своего короля НА РАССТОЯНИИ КОНЯ от противника (не вставая рядом сам под шах).\n\n4. Повторяй: отрезай, подводи короля, сужай квадрат.\n\n5. Поставь мат ферзём на предпоследней линии при поддержке короля.\n\n✏ ЗАМЕТКА: не делай ничьих от пата — всегда держи ферзя на расстоянии поля, если король загнан в угол.'},
+  {t:'Правило квадрата и проходная пешка',lv:1,tag:'Эндшпиль',
+   d:'Успеет ли пешка превратиться?',
+   c:'ПРОХОДНАЯ — пешка, которую некому остановить (впереди и по диагоналям нет чужих пешек).\n\nПРАВИЛО КВАДРАТА: нарисуй квадрат от пешки до последней линии (в сторону короля). Если чужой король УЖЕ внутри квадрата (или может в него войти), он догонит пешку. Если нет — пешка превращается в ферзя.\n\nКвадрат строится по той горизонтали, ГДЕ СТОИТ ПЕШКА, до её превращения.\n\n✏ Важно: пешка не может ходить назад. Ошибочный ход пешки вперёд при близком чужом короле — вечная ошибка новичков.'},
+
+  // ---------- УРОВЕНЬ 2: СРЕДНИЙ (базовая тактика) ----------
+  {t:'Тактика: вилка',lv:2,tag:'Тактика',
+   d:'Одной фигурой атакуем две.',
+   c:'ВИЛКА — ход, при котором одна фигура нападает на ДВЕ фигуры соперника одновременно. Соперник спасает одну, вторую ты забираешь.\n\nЛучшие «вилочники» — конь и пешка: они бьют неожиданно.\n\nИщи вилку конём: конь нападает на короля и ферзя — сопернику конец. Пешка атакует две фигуры — одна теряется.\n\n✏ КАК НАЙТИ: прежде чем ходить, посмотри, куда бьёт твой конь/пешка/слон — не нападает ли он на две мишени разом. Если да — это почти всегда лучший ход.'},
+  {t:'Тактика: двойной удар',lv:2,tag:'Тактика',
+   d:'Две угрозы одним ходом — соперник не успеет.',
+   c:'ДВОЙНОЙ УДАР — родственник вилки: одна фигура нападает на ДВЕ ценные цели (часто из разных точек).\n\nГлавное отличие от вилки: цели могут быть далеко друг от друга — важно, что обе под боем ОДНОВРЕМЕННО.\n\nЛучше всего двойной удар делают ферзь (по линиям и диагоналям) и слон.\n\n✏ Всегда проверяй перед ходом: какие фигуры соперника я могу атаковать одной? Где мой ферзь/слон встанет, чтобы угрожать двум целям?'},
+  {t:'Тактика: связка',lv:2,tag:'Тактика',
+   d:'Фигура не может уйти — она прикована.',
+   c:'СВЯЗКА — фигура не может ходить, потому что за ней стоит более ценная (король или ферзь). Связанную фигуру легко бить: она беспомощна.\n\nЕсли за фигурой КОРОЛЬ — связка АБСОЛЮТНАЯ: фигура вообще не может сдвинуться.\n\nПриём: копи на связанную фигуру — слон атакует связанного коня, потом пешка, и фигура теряется.\n\n✏ Как защититься от связки: сдвинь короля/защити фигуру, чтобы раскрыть связку, либо сбей атакующего.'},
+  {t:'Тактика: открытое нападение',lv:2,tag:'Тактика',
+   d:'Одна фигура уходит и вскрывает атаку другой.',
+   c:'ОТКРЫТОЕ НАПАДЕНИЕ — твоя фигура уходит с линии, открывая атаку другой фигуры на ценную цель соперника.\n\nКлассический пример: слон уходит с линии ладьи, и ладья сразу атакует ферзя/короля соперника.\n\nОсобо опасен ОТКРЫТЫЙ ШАХ — фигура уходит и одновременно вскрывает линию шаха (король обязан защититься, а твоя ушедшая фигура «бесплатно» делает своё дело).\n\n✏ Ищи открытые шахи при атаке — они дарят тебе целый ход соперника.'},
+  {t:'Дебют: контроль центра',lv:2,tag:'Дебют',
+   d:'Почему центр — главное поле боя.',
+   c:'Центральные поля (d4,e4,d5,e5) — сердце доски. Фигуры из центра ходят на всю доску и контролируют больше полей.\n\nПринципы:\n\n1. Ставь пешки в центр (e4, d4) — они борются за пространство.\n\n2. Развивай коней на центральные поля (c3-f3 / c6-f6) — они контролируют центр.\n\n3. Слоны в центре открывают диагонали.\n\n4. НЕ отдавай центральные пешки без компенсации.\n\n✏ Если соперник сдаёт центр — займи его сам. Пешечный центр = пространственное преимущество.'},
+  {t:'Как бить и как защищаться',lv:2,tag:'Тактика',
+   d:'Подсчёт материала в борьбе за фигуру.',
+   c:'Частая ошибка — бить «в лоб» и терять материал. Перед обменом ПОДСЧИТАЙ:\n\n1. Сколько раз я атакую фигуру?\n2. Сколько раз её защищают?\n3. Если я бью первым, сколько фигур соперника потом съедят МОЮ?\n\nЕсли атак и защит поровну — обмен равный. Если противник защищает больше — не выгодно.\n\nВсегда смотри, кто бьёт ПОСЛЕДНИМ. Кто взял последним — тот остался с материалом.\n\n✏ Приём «двойной защиты»: защити свою ценную фигуру ДВУМЯ — сопернику тяжелее её выиграть.'},
+  {t:'Двойной удар + вилка: как решать задачи',lv:2,tag:'Тактика',
+   d:'Приёмы дебага: ищем вилки и двойные удары.',
+   c:'Чтоб быстро находить вилки и двойные удары:\n\n1. ПОСЧИТАЙ незащищённые фигуры соперника. Незащищённая фигура — приглашение к вилке.\n\n2. ПОСТАВЬ коня (мысленно) на каждое поле-ключ и отсмотри, на какие мишени он бьёт.\n\n3. ИЩИ ПАРЫ: ферзь+король, ладья+король, два коня — классические «пары» для вилки.\n\n4. Оценивай тихо: лучше сделать вилку, которая давит, чем агрессивный ход без причины.\n\n✏ Реши 10-15 задач на вилку/двойной удар — «зрение» на них станет автоматическим.'},
+
+  // ---------- УРОВЕНЬ 3: ПРОДВИНУТАЯ ТАКТИКА ----------
+  {t:'Жертва и гамбит',lv:3,tag:'Тактика',
+   d:'Отдать материал ради победы.',
+   c:'ЖЕРТВА — осознанная отдача материала ради атаки, мата или долгосрочного преимущества.\n\nГАМБИТ — жертва пешки в дебюте для быстрого развития и атаки.\n\nПравила просчёта жертвы:\n\n1. Посчитай, что получаешь взамен: атаку на короля? темп? позиционное преимущество?\n\n2. Не жертвуй «вслепую» — только если видишь конкретную угрозу мата или явную компенсацию.\n\n3. Жертва коня/слона у короля часто вскрывает пешки и даёт атаку.\n\n4. Жертва ферзя допустима лишь ради мата.\n\n✏ Лучший тест жертвы: «Есть ли у меня после неё реальная угроза, которую соперник не может отразить?» Если нет — это просто потеря материала.'},
+  {t:'Ловушка: спертый мат (Boboli)',lv:3,tag:'Мат',
+   d:'Мат конём в углу доски.',
+   c:'СПЁРТЫЙ МАТ — редкий, но красивый приём: король заперт своими же фигурами, и конь ставит мат в углу.\n\nКлассика: чёрный король на h8, заперт пешками g7 и h7, ладья бьёт по 8-й линии, конь/ферзь шахируют, и конь матует на f7 или g6.\n\nПлан:\n\n1. Загони короля в угол.\n\n2. Свяжи/обездвижь его убежища фигурами соперника (они мешают королю уйти).\n\n3. Конём поставь мат в углу — король не может уйти, потому что поля заняты его же фигурами.\n\n✏ Смотри на коней у углового короля — там спёртый мат случается чаще всего.'},
+  {t:'Пат в эндшпиле: спасайся или лови',lv:3,tag:'Эндшпиль',
+   d:'Как ничья от пата спасает проигранную позицию.',
+   c:'ПАТ — у стороны нет ХОДА, король не под шахом. Это ничья!\n\nПроигрывающая сторона может СПАСТИСЬ патом:\n\n1. Оставь сопернику только сильного ферзя.\n\n2. Загони своего короля в угол, где он окружён своими пешками.\n\n3. Не оставляй королю ходов — используй блокирующие пешки.\n\n✏ Атакующая сторона должна ОСТЕРЕГАТЬСЯ пата: мат ферзём ставит аккуратно, оставляя чужому королю ходы, пока не готов финальный мат.'},
+  {t:'Проходная пешка и оппозиция',lv:3,tag:'Эндшпиль',
+   d:'Ключевые поля в пешечных окончаниях.',
+   c:'ОППОЗИЦИЯ — короли стоят друг напротив друга через 1 поле. Противник не может продвинуться пешкой, потому что теряет темп.\n\n«КЛЮЧЕВОЕ ПОЛЕ» для пешки — поля, заняв которые, король гарантирует её превращение.\n\nПравила пешечного эндшпиля:\n\n1. Сначала активируй короля (в эндшпиле он сильная фигура).\n\n2. Займи оппозицию — выиграй время противника.\n\n3. Веди пешку, защищённую королём сбоку (не блокируя её!).\n\n4. Не отдавай пешку без причины.\n\n✏ Помни: король перед пешкой (на 6-й линии при пешке) почти всегда = превращение. Король ЗА пешкой — слабее.'},
+  {t:'Тактика: перегрузка фигуры',lv:3,tag:'Тактика',
+   d:'Заставь одну фигуру защищать слишком много.',
+   c:'ПЕРЕГРУЗКА — фигура защищает несколько объектов/полей сразу и «не справляется».\n\nШаги:\n\n1. Найди фигуру соперника, которая защищает 2+ важных поля/фигуры.\n\n2. Атакуй одно из защищаемых — отвлекая её.\n\n3. Когда она уйдёт защищать одно, второе останется без защиты.\n\nКлассика: слон защищает и ферзя, и поле мата; убери его от ферзя — и будет мат.\n\n✏ Перед ходом смотри: не защищает ли фигура соперника сразу два критичных поля? Если да — атакуй один из флангов.'},
+  {t:'Тактика: межмомент (интермеццо)',lv:3,tag:'Тактика',
+   d:'Ответный ход прежде, чем забирать.',
+   c:'ИНТЕРМЕЦЦО (промежуточный ход) — вместо того чтобы бить в ответ, делаем СНАЧАЛА более сильный ход (шах, угрозу), вынуждая соперника реагировать.\n\nПример: соперник взял твою пешку. Вместо того чтобы взять обратно, ты даёшь ШАХ — соперник обязан защищать короля, а ты потом забираешь пешку с темпом.\n\n✏ ВСЕГДА, когда соперник что-то взял, спрашивай: «А есть ли у меня лучший ответ — шах или угроза сильнее?» Это пропускают многие.'},
+  {t:'Тактика: вилка королю и ферзю — машинное зрение',lv:3,tag:'Тактика',
+   d:'Форсированная вилка: конь и пешка.',
+   c:'Самая страшная вилка — КОНЬ БЬЁТ КОРОЛЯ И ФЕРЗЯ. После шаха соперник спасает короля, а ферзь теряется.\n\nСхема:\n\n1. Ищи незащищённую пару король+ферзь соперника в зоне коня.\n\n2. Конь прыгает на поле, бьющее обе мишени (обычно у короля).\n\n3. Пешечная вилка: пешка нападает на коня и слона/ферзя одновременно — одна фигура теряется.\n\n✏ Форсированные вилки всегда засчитываются: посчитал — взял материал. Тренируй на задачах, где конь в центре.'},
+  {t:'Тактика: вскрытие линии и шах',lv:3,tag:'Тактика',
+   d:'Батарея и открытый шах.',
+   c:'ВСКРЫТИЕ ЛИНИИ — фигура уходит, открывая атаку ладьи/ферзя по линии на ценную цель.\n\nБАТАРЕЯ — две фигуры на одной линии (например, слон за ферзём), усиливают друг друга.\n\nОТКРЫТЫЙ ШАХ — фигура уходит, открывая шах; соперник обязан отвечать на шах, а ушедшую фигуру «не наказывает». Ты получаешь темп.\n\n✏ Используй открытый шах для двойной выгоды: уходящая фигура занимает важное поле, а шах связывает сопернику руки.'},
+  {t:'Тактика: перекрытие (interference)',lv:3,tag:'Тактика',
+   d:'Разрушь связь между фигурами соперника.',
+   c:'ПЕРЕКРЫТИЕ (блокировка) — ход фигурой НА поле между двумя фигурами соперника, разрывая их линию/защиту.\n\nПример: ладья и король связаны линией через поле — поставь туда коня, и защита разорвётся.\n\n✏ Ищи перекрытие, когда фигура соперника защищает две важные вещи по одной прямой — поставь фигуру между ними.'},
+  {t:'Дебют: ловушки и защита от них',lv:3,tag:'Дебют',
+   d:'Copyright популярные ловушки и как не попасться.',
+   c:'ДЕТСКИЙ МАТ — ферзь и слон матуют на f7 за 4 хода. Защита: не давай ферзю войти, выводи коня на f6 (или поле f6).\n\n«СЛАВА БОГУ» — чёрные сдаются после жертвы слона в дебюте. Ищи шахи и взятия, не зевай пешку f7.\n\nЗащита от быстрых ловушек:\n\n1. Если соперник выводит ферзя рано — атакуй его фигурами (бесплатный темп).\n\n2. Не открывай короля рокировкой в атакуемую сторону.\n\n3. Отвечай на агрессию развитием.\n\n✏ Ловушки работают, только если противник не думает. Думай — и они не работают.'},
+  {t:'Эндшпиль: ладья против пешки',lv:3,tag:'Эндшпиль',
+   d:'Правило ладьи позади пешки.',
+   c:'ЛАДЬЯ ПРОТИВ ПЕШКИ — классический эндшпиль.\n\nГлавные правила:\n\n1. Ладья СЗАДИ пешки (по той же линии) — сильнее. Ставь ладью позади проходной пешки — она не может уйти.\n\n2. Если король защищает проходную пешку, подведи своего короля.\n\n3. Продвигай пешку, защищённую королём, а не впереди него.\n\n✏ При царе-одиночке ладья побеждает, если стоит позади пешки или отрезает короля.'},
+  {t:'Тактика: анализ своих ошибок',lv:3,tag:'Анализ',
+   d:'Где теряются очки — исправляй системно.',
+   c:'Лучший способ расти — разбирать свои партии. После каждой партии (особенно проигранной) спроси:\n\n1. ГДЕ я ЗЕВНУЛ фигуру? (разобрать в момент — запомнить навсегда)\n\n2. ГДЕ соперник ошибся, а я не воспользовался? (пропущенная вилка, сожаление)\n\n3. КАКОЙ был мой лучший ход в этой партии? (что было сильнее всего)\n\nСоставь СПИСОК своих повторяющихся ошибок (например: «зьюваю связки», «не рокируюсь вовремя») и натренируй их отдельно.\n\n✏ Анализируй не только быстрые партии, но и «медленные» — в них видно мышление.'}
+];
+function renderLessons(){
+  var el=document.getElementById('lessonsList');el.innerHTML='';
+  var done=getLS('chess_lessons_done')||{};
+  var doneCount=0;for(var k in done)doneCount++;
+  var total=LESSONS.length;
+  var head=document.createElement('div');
+  head.className='lesson';
+  head.innerHTML='<div class="lt">Выполнено: '+doneCount+' из '+total+' уроков</div>';
+  el.appendChild(head);
+  // группировка по уровням
+  var groups=[{lv:1,title:'Уровень 1 — Начальный'},{lv:2,title:'Уровень 2 — Базовая тактика'},{lv:3,title:'Уровень 3 — Продвинутая тактика'}];
+  groups.forEach(function(g){
+    var gEl=document.createElement('div');
+    gEl.style.cssText='margin:14px 0 6px;font-weight:700;color:var(--accent);font-size:14px';
+    gEl.textContent=g.title;
+    el.appendChild(gEl);
+    LESSONS.forEach(function(L){
+      if(L.lv!==g.lv)return;
+      var d=document.createElement('div');d.className='lesson';
+      d.innerHTML='<div class="lt">'+L.t+'</div><div class="ld">'+L.d+'</div><div style="margin-top:8px"><span class="lbadge">'+L.tag+'</span><span class="lbadge '+(done[L.id]?'done':'')+'">'+(done[L.id]?'✓ Пройден':'Урок')+'</span></div>';
+      d.addEventListener('click',function(x){return function(){openLesson(x);};}(L));
+      el.appendChild(d);
+    });
+  });
+}
+function openLesson(L){
+  show('sc-lesson');
+  var done=getLS('chess_lessons_done')||{};done[L.id]=1;setLS('chess_lessons_done',done);
+  var el=document.getElementById('lessonBody');
+  el.innerHTML='<div class="lesson-screen"><h2>'+L.t+'</h2><div class="content">'+L.c+'</div><button class="btn back" onclick="goLessons()">← Назад к урокам</button></div>';
+}
+function goTasks(){
+  show('sc-tasks');markNav(currentNav);
+  renderTasks();
+}
+var currentNav=2;
+
+/* ============ ЗАДАНИЯ ============ */
+// Банк заданий: 3-месячная программа. Каждый день: [fen, correct, cat, lv, d, hint, distractors]
+var PROG=[{"week":"Неделя 1 · Эндшпиль: пешки и король","day":1,"tasks":[["8/3k4/8/8/P7/8/K7/8 w - - 0 1","a4a5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a2b3","a2a3","a2b2"]],["8/6k1/8/1P6/8/K7/8/8 w - - 0 1","b5b6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a3b4","a3a4","a3b3"]],["8/8/8/5P2/5K2/8/8/7k w - - 0 1","f5f6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f4g5","f4e5","f4g4"]]]},{"week":"Неделя 1 · Эндшпиль: пешки и король","day":2,"tasks":[["8/8/8/5P2/8/6K1/8/4k3 w - - 0 1","f5f6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g3h4","g3g4","g3f4"]],["8/8/8/8/1P6/1K6/8/7k w - - 0 1","b4b5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b3c4","b3a4","b3c3"]],["8/8/4k3/8/8/4P3/8/3K4 w - - 0 1","e3e4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["d1e2","d1d2","d1c2"]]]},{"week":"Неделя 1 · Эндшпиль: пешки и король","day":3,"tasks":[["8/8/8/4k3/8/7P/6K1/8 w - - 0 1","h3h4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g2g3","g2f3","g2h2"]],["8/8/8/3P4/3K4/8/1k6/8 w - - 0 1","d5d6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["d4e5","d4c5","d4e4"]],["8/8/8/8/3k4/5P2/8/6K1 w - - 0 1","f3f4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g1h2","g1g2","g1f2"]]]},{"week":"Неделя 1 · Эндшпиль: пешки и король","day":4,"tasks":[["8/8/8/4k3/8/3P4/2K5/8 w - - 0 1","d3d4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["c2c3","c2b3","c2d2"]],["8/8/8/8/3P4/4K3/1k6/8 w - - 0 1","d4d5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["e3f4","e3e4","e3f3"]],["8/3k4/8/P7/K7/8/8/8 w - - 0 1","a5a6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a4b5","a4b4","a4b3"]]]},{"week":"Неделя 1 · Эндшпиль: пешки и король","day":5,"tasks":[["8/8/8/8/5P2/6K1/8/3k4 w - - 0 1","f4f5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g3h4","g3g4","g3h3"]],["8/8/8/8/P7/K3k3/8/8 w - - 0 1","a4a5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a3b4","a3b3","a3b2"]],["3k4/8/8/8/8/1P6/8/1K6 w - - 0 1","b3b4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b1c2","b1b2","b1a2"]]]},{"week":"Неделя 1 · Эндшпиль: пешки и король","day":6,"tasks":[["8/6k1/8/8/8/7P/8/6K1 w - - 0 1","h3h4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g1h2","g1g2","g1f2"]],["8/3k4/8/8/8/6P1/8/5K2 w - - 0 1","g3g4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f1g2","f1f2","f1e2"]],["8/3k4/8/8/1P6/8/1K6/8 w - - 0 1","b4b5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b2c3","b2b3","b2a3"]]]},{"week":"Неделя 1 · Эндшпиль: пешки и король","day":7,"tasks":[["3k4/8/8/8/8/5P2/8/6K1 w - - 0 1","f3f4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g1h2","g1g2","g1f2"]],["8/3k4/8/8/8/1P6/8/1K6 w - - 0 1","b3b4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b1c2","b1b2","b1a2"]],["3k4/8/8/8/8/1P6/K7/8 w - - 0 1","b3b4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a2a3","a2b2","a2b1"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":1,"tasks":[["7k/8/5R1K/8/8/8/8/8 w - - 0 1","f6f8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["h6g6","h6h5","h6g5"]],["k7/8/1K5R/8/8/8/8/8 w - - 0 1","h6h8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["h6h7","h6g6","h6f6"]],["8/8/1R6/8/8/6K1/8/7k w - - 0 1","b6b1","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["b6b8","b6b7","b6h6"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":2,"tasks":[["k1K5/8/8/8/2Q5/8/8/8 w - - 0 1","c4a6","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c8d8","c8d7","c8c7"]],["k7/8/1K6/8/8/8/8/2Q5 w - - 0 1","c1c8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["b6c7","b6c6","b6a6"]],["k7/2K5/8/8/8/8/8/3Q4 w - - 0 1","d1a4","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c7d8","c7c8","c7d7"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":3,"tasks":[["3Q3k/8/8/6K1/8/8/8/8 w - - 0 1","g5g6","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d8h8","d8g8","d8f8"]],["k3R3/8/8/1K6/8/8/8/8 w - - 0 1","b5b6","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["e8h8","e8g8","e8f8"]],["8/8/8/8/8/4K2Q/8/7k w - - 0 1","e3f2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h3h8","h3c8","h3h7"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":4,"tasks":[["7k/5K2/8/6R1/8/8/8/8 w - - 0 1","g5h5","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f7f8","f7e8","f7e7"]],["k7/2K5/8/1Q6/8/8/8/8 w - - 0 1","b5b8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c7d8","c7c8","c7d7"]],["k2K4/8/8/8/8/8/8/R7 w - - 0 1","d8c8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["d8e8","d8e7","d8d7"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":5,"tasks":[["3Q4/8/8/8/8/7K/8/7k w - - 0 1","d8d1","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d8h8","d8g8","d8f8"]],["5Q1k/8/6K1/8/8/8/8/8 w - - 0 1","f8e8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f8h8","f8g8","f8d8"]],["5K1k/7R/8/8/8/8/8/8 w - - 0 1","h7h6","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f8e8","f8f7","f8e7"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":6,"tasks":[["8/8/8/8/8/7K/8/4Q2k w - - 0 1","h3g3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h3h4","h3g4","e1e8"]],["8/8/8/8/7Q/6K1/8/7k w - - 0 1","h4h2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h4h8","h4d8","h4h7"]],["7k/5K2/8/8/8/3R4/8/8 w - - 0 1","d3h3","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f7f8","f7e8","f7e7"]]]},{"week":"Неделя 2 · Мат ферзём и королём","day":7,"tasks":[["k7/2K5/8/8/R7/8/8/8 w - - 0 1","c7c8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["c7d8","c7d7","c7d6"]],["Q6k/8/7K/8/8/8/8/8 w - - 0 1","a8f8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["a8h8","a8g8","a8e8"]],["7k/8/5K2/8/8/8/7R/8 w - - 0 1","f6f7","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f6e7","f6g6","f6e6"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":1,"tasks":[["k7/8/1K6/8/8/6Q1/8/8 w - - 0 1","g3g8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["b6c7","b6c6","b6a6"]],["7k/7Q/5K2/8/8/8/8/8 w - - 0 1","h7g7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h7h8","h7g8","h7f7"]],["8/8/8/8/8/K7/5Q2/k7 w - - 0 1","f2a2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["a3b4","a3a4","a3b3"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":2,"tasks":[["k7/2K5/3Q4/8/8/8/8/8 w - - 0 1","d6a6","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c7d8","c7c8","c7d7"]],["8/8/8/8/8/8/2K5/k5Q1 w - - 0 1","c2b3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c2d3","c2c3","c2d2"]],["8/8/8/8/8/7Q/5K2/7k w - - 0 1","h3h8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h3c8","h3h7","h3d7"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":3,"tasks":[["8/8/8/Q7/8/K7/8/k7 w - - 0 1","a5e1","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["a5d8","a5a8","a5c7"]],["7k/5K2/8/8/8/8/8/7R w - - 0 1","f7f8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f7e8","f7e7","f7g6"]],["8/8/8/8/2Q5/8/8/k1K5 w - - 0 1","c4a6","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c4g8","c4c8","c4f7"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":4,"tasks":[["7k/4K3/8/8/8/8/8/7Q w - - 0 1","e7f8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["e7e8","e7d8","e7f7"]],["k7/8/2K5/Q7/8/8/8/8 w - - 0 1","c6c7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c6d7","c6d6","c6b6"]],["8/8/8/8/7Q/8/8/k1K5 w - - 0 1","h4a4","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h4h8","h4d8","h4h7"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":5,"tasks":[["5K1k/8/8/8/8/2Q5/8/8 w - - 0 1","c3g7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f8e8","f8f7","f8e7"]],["8/8/8/4Q3/8/K7/8/k7 w - - 0 1","e5b2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["e5h8","e5e8","e5b8"]],["8/8/8/8/Q7/1K6/8/k7 w - - 0 1","a4a2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["a4e8","a4a8","a4d7"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":6,"tasks":[["5K1k/8/R7/8/8/8/8/8 w - - 0 1","a6h6","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f8e8","f8f7","f8e7"]],["8/8/2R5/8/8/6K1/8/7k w - - 0 1","c6c1","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["c6c8","c6c7","c6h6"]],["8/8/8/8/8/7K/8/6Rk w - - 0 1","g1a1","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["h3h4","h3g4","h3g3"]]]},{"week":"Неделя 3 · Мат ладьёй и королём","day":7,"tasks":[["5Q1k/5K2/8/8/8/8/8/8 w - - 0 1","f8g8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f8h8","f8e8","f8d8"]],["7k/8/6K1/Q7/8/8/8/8 w - - 0 1","a5a8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["g6f7","g6h6","g6f6"]],["3Q3k/5K2/8/8/8/8/8/8 w - - 0 1","d8g8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d8h8","d8f8","d8e8"]]]},{"week":"Неделя 4 · Вилка конём","day":1,"tasks":[["8/8/8/4K3/4N3/8/8/5q1k w - - 0 1","e4g3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5e6","e5d6","e5d5"]],["8/8/8/3K4/3N4/8/8/k3b3 w - - 0 1","d4c2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]],["8/8/8/4K3/1r6/8/1k6/2N5 w - - 0 1","c1d3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]]]},{"week":"Неделя 4 · Вилка конём","day":2,"tasks":[["8/3k4/6b1/3K4/8/3N4/8/8 w - - 0 1","d3e5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e5","d5c5","d5d4"]],["6n1/3k3N/8/3K4/8/8/8/8 w - - 0 1","h7f6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h7f8","h7g5","d5e5"]],["8/8/8/2n1K3/8/8/1k6/4N3 w - - 0 1","e1d3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5d6","e5f5"]]]},{"week":"Неделя 4 · Вилка конём","day":3,"tasks":[["8/8/8/3K4/N1n5/8/8/3k4 w - - 0 1","a4b2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5c6","d5c5"]],["8/3k4/N7/3K4/n7/8/8/8 w - - 0 1","a6c5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["a6b8","a6c7","a6b4"]],["3k3n/8/7N/3K4/8/8/8/8 w - - 0 1","h6f7","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h6g8","h6f5","h6g4"]]]},{"week":"Неделя 4 · Вилка конём","day":4,"tasks":[["8/8/8/2n1K3/8/8/3N4/k7 w - - 0 1","d2b3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5d6","e5f5"]],["8/4n3/8/4K3/1N6/4k3/8/8 w - - 0 1","b4d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["8/8/8/3K4/8/7N/4q1k1/8 w - - 0 1","h3f4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5d6","d5c6","d5c5"]]]},{"week":"Неделя 4 · Вилка конём","day":5,"tasks":[["3k4/8/8/3Kb3/3N4/8/8/8 w - - 0 1","d4c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5c6","d5e5"]],["8/2n5/8/4K3/1N6/4k3/8/8 w - - 0 1","b4d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5d6","e5f5"]],["8/8/8/3K4/6q1/3k3N/8/8 w - - 0 1","h3f2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5d6","d5c6","d5e5"]]]},{"week":"Неделя 4 · Вилка конём","day":6,"tasks":[["8/8/8/3K3N/4r3/8/8/7k w - - 0 1","h5g3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h5g7","h5f6","h5f4"]],["8/8/8/k3K3/8/4N3/3r4/8 w - - 0 1","e3c4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5f5"]],["8/8/8/3K4/6N1/8/8/3k1r2 w - - 0 1","g4e3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]]]},{"week":"Неделя 4 · Вилка конём","day":7,"tasks":[["8/8/1N6/4K3/8/4k3/3n4/8 w - - 0 1","b6c4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b6c8","b6a8","b6d7"]],["3k4/8/8/2bK2N1/8/8/8/8 w - - 0 1","g5e6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["g5h7","g5f7","g5e4"]],["8/8/8/3K4/6N1/8/8/3n3k w - - 0 1","g4f2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":1,"tasks":[["8/2N1k3/5n2/4K3/8/8/8/8 w - - 0 1","c7d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["c7e8","c7a8","c7e6"]],["3k3N/8/3n4/3K4/8/8/8/8 w - - 0 1","h8f7","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h8g6","d5e6","d5d6"]],["8/1n6/4N3/3K4/8/3k4/8/8 w - - 0 1","e6c5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e6f8","e6d8","e6g7"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":2,"tasks":[["8/8/8/2N1K3/8/8/1k6/2n5 w - - 0 1","c5d3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["3k1q2/2N5/8/3K4/8/8/8/8 w - - 0 1","c7e6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["c7e8","c7a8","c7a6"]],["8/8/8/3K3N/8/8/8/5b1k w - - 0 1","h5g3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h5g7","h5f6","h5f4"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":3,"tasks":[["4k3/7b/8/4K2N/8/8/8/8 w - - 0 1","h5f6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h5g7","h5f4","h5g3"]],["8/8/8/3K4/1N6/q7/8/k7 w - - 0 1","b4c2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]],["4k3/8/N3b3/4K3/8/8/8/8 w - - 0 1","a6c7","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["a6b8","a6c5","a6b4"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":4,"tasks":[["8/4k1N1/8/4K3/8/4n3/8/8 w - - 0 1","g7f5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["g7e8","g7e6","g7h5"]],["8/8/8/3K4/6N1/3n4/8/3k4 w - - 0 1","g4f2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]],["3N4/8/8/k3K3/1b6/8/8/8 w - - 0 1","d8c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d8f7","d8b7","d8e6"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":5,"tasks":[["8/8/8/4K3/8/8/3N4/k1q5 w - - 0 1","d2b3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["8/2N5/8/4K3/1r6/4k3/8/8 w - - 0 1","c7d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["c7e8","c7a8","c7e6"]],["8/N7/8/k3K3/1q6/8/8/8 w - - 0 1","a7c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["a7c8","a7b5","e5f6"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":6,"tasks":[["8/3k3n/6N1/3K4/8/8/8/8 w - - 0 1","g6f8","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["g6h8","g6e7","g6e5"]],["8/8/8/3K4/4n1N1/8/8/7k w - - 0 1","g4f2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5c6","d5e5"]],["8/8/8/3K4/2N3n1/8/8/3k4 w - - 0 1","c4e3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]]]},{"week":"Неделя 5 · Вилки и двойной удар","day":7,"tasks":[["1N1k4/r7/8/3K4/8/8/8/8 w - - 0 1","b8c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b8d7","b8a6","d5e6"]],["7N/4k3/8/4K3/7q/8/8/8 w - - 0 1","h8g6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["h8f7","e5f5","e5d5"]],["8/8/1N6/4K3/1b6/4k3/8/8 w - - 0 1","b6d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b6c8","b6a8","b6d7"]]]},{"week":"Неделя 6 · Связка","day":1,"tasks":[["7B/4K3/8/8/8/2r5/8/k7 w - - 0 1","h8c3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h8g7","h8f6","h8e5"]],["8/3K4/8/8/3k4/2n5/8/B7 w - - 0 1","a1c3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d7e8","d7d8","d7c8"]],["8/6B1/8/8/K2n4/8/8/k7 w - - 0 1","g7d4","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["g7h8","g7f8","g7h6"]]]},{"week":"Неделя 6 · Связка","day":2,"tasks":[["1B6/8/3n4/4k3/8/5K2/8/8 w - - 0 1","b8d6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["b8c7","b8a7","f3g4"]],["8/8/8/4B3/K7/2q5/8/k7 w - - 0 1","e5c3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e5h8","e5b8","e5g7"]],["7B/8/8/8/4K3/8/1q6/k7 w - - 0 1","h8b2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h8g7","h8f6","h8e5"]]]},{"week":"Неделя 6 · Связка","day":3,"tasks":[["8/8/4K3/8/8/2B5/1r6/k7 w - - 0 1","c3b2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e6f7","e6e7","e6d7"]],["8/8/3K4/3B4/8/5n2/8/7k w - - 0 1","d5f3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d6e7","d6d7","d6c7"]],["3k4/8/5q2/3K4/7B/8/8/8 w - - 0 1","h4f6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d5c5","d5e4","d5c4"]]]},{"week":"Неделя 6 · Связка","day":4,"tasks":[["8/5K2/8/8/3B4/2n5/8/k7 w - - 0 1","d4c3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["f7g8","f7f8","f7e8"]],["8/6B1/5r2/8/7K/8/8/k7 w - - 0 1","g7f6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["g7h8","g7f8","g7h6"]],["8/8/2B5/8/8/2K5/6n1/7k w - - 0 1","c6g2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["c6e8","c6a8","c6d7"]]]},{"week":"Неделя 6 · Связка","day":5,"tasks":[["3k4/8/3K4/6r1/7B/8/8/8 w - - 0 1","h4g5","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d6e6","d6c6","h4g3"]],["3k4/8/8/6r1/7B/2K5/8/8 w - - 0 1","h4g5","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h4g3","h4f2","h4e1"]],["8/3K4/8/4B3/8/2n5/8/k7 w - - 0 1","e5c3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d7e8","d7d8","d7c8"]]]},{"week":"Неделя 6 · Связка","day":6,"tasks":[["4k3/5n2/6B1/8/K7/8/8/8 w - - 0 1","g6f7","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["g6h7","g6h5","g6f5"]],["8/8/4K3/8/4k3/8/2r5/1B6 w - - 0 1","b1c2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e6f7","e6e7","e6d7"]],["8/2K5/8/8/8/5B2/6n1/7k w - - 0 1","f3g2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["c7d8","c7c8","c7b8"]]]},{"week":"Неделя 6 · Связка","day":7,"tasks":[["3k4/8/5r2/3K2B1/8/8/8/8 w - - 0 1","g5f6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["g5h6","g5h4","g5f4"]],["8/8/8/4K3/3B4/8/1n6/k7 w - - 0 1","d4b2","Связка",2,"Слон связывает фигуру, она не может уйти — выиграй её.","Слон бьёт связанную фигуру.",["e5f6","e5e6","e5d6"]],["8/8/8/B7/1n1K4/8/8/4k3 w - - 0 1","a5b4","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a5d8","a5c7","a5b6"]]]},{"week":"Неделя 7 · Маты: повторение","day":1,"tasks":[["8/8/8/8/1K6/8/8/k5Q1 w - - 0 1","b4b3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["b4c5","b4b5","b4a5"]],["8/8/4R3/8/8/K7/8/k7 w - - 0 1","e6e1","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["e6e8","e6e7","e6h6"]],["8/8/8/8/8/6K1/7Q/7k w - - 0 1","g3h3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["g3h4","g3g4","g3f4"]]]},{"week":"Неделя 7 · Маты: повторение","day":2,"tasks":[["R7/8/8/8/8/1K6/8/k7 w - - 0 1","b3c2","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["a8h8","a8g8","a8f8"]],["7k/8/7K/8/8/8/2R5/8 w - - 0 1","c2c8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["h6g6","h6h5","h6g5"]],["8/8/8/8/8/4Q1K1/8/7k w - - 0 1","e3e1","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["g3h4","g3g4","g3f4"]]]},{"week":"Неделя 7 · Маты: повторение","day":3,"tasks":[["k7/2K5/8/8/5R2/8/8/8 w - - 0 1","f4a4","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["c7d8","c7c8","c7d7"]],["8/8/8/5Q2/8/8/2K5/k7 w - - 0 1","f5a5","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f5f8","f5c8","f5h7"]],["8/8/8/5R2/8/8/5K2/7k w - - 0 1","f5h5","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f5f8","f5f7","f5f6"]]]},{"week":"Неделя 7 · Маты: повторение","day":4,"tasks":[["8/8/3R4/8/8/8/5K2/7k w - - 0 1","d6h6","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["d6d8","d6d7","d6g6"]],["6Qk/8/4K3/8/8/8/8/8 w - - 0 1","e6f7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["g8h8","g8f8","g8e8"]],["8/8/8/8/8/7K/8/Q6k w - - 0 1","h3g3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h3h4","h3g4","a1h8"]]]},{"week":"Неделя 7 · Маты: повторение","day":5,"tasks":[["k7/8/K7/8/8/Q7/8/8 w - - 0 1","a3f8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["a6b6","a6b5","a6a5"]],["7k/4K3/8/7Q/8/8/8/8 w - - 0 1","e7f8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["e7e8","e7d8","e7f7"]],["8/8/6Q1/8/8/7K/8/7k w - - 0 1","g6g2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["g6g8","g6e8","g6h7"]]]},{"week":"Неделя 7 · Маты: повторение","day":6,"tasks":[["R6k/8/8/6K1/8/8/8/8 w - - 0 1","g5h6","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["a8h8","a8g8","a8f8"]],["7k/5K2/R7/8/8/8/8/8 w - - 0 1","a6h6","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f7f8","f7e8","f7e7"]],["8/8/8/8/8/2K5/7Q/k7 w - - 0 1","h2b2","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c3d4","c3c4","c3b4"]]]},{"week":"Неделя 7 · Маты: повторение","day":7,"tasks":[["8/8/8/8/8/7K/8/3R3k w - - 0 1","h3g3","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["h3h4","h3g4","d1d8"]],["8/6R1/8/8/8/8/2K5/k7 w - - 0 1","g7a7","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["g7g8","g7h7","g7f7"]],["5K1k/8/8/8/8/5R2/8/8 w - - 0 1","f3h3","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f8e8","f8f7","f8e7"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":1,"tasks":[["3k4/8/8/8/8/P7/7K/8 w - - 0 1","a3a4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["h2h3","h2g3","h2g2"]],["4k3/8/8/8/8/3P4/8/4K3 w - - 0 1","d3d4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["e1f2","e1e2","e1d2"]],["8/1k6/8/8/8/1P6/K7/8 w - - 0 1","b3b4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a2a3","a2b2","a2b1"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":2,"tasks":[["8/3k4/8/8/7P/6K1/8/8 w - - 0 1","h4h5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g3g4","g3f4","g3h3"]],["3k4/8/8/3P4/3K4/8/8/8 w - - 0 1","d5d6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["d4e5","d4c5","d4e4"]],["3k4/8/8/8/8/5P2/4K3/8 w - - 0 1","f3f4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["e2e3","e2d3","e2f2"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":3,"tasks":[["4k3/8/8/8/8/4P3/8/4K3 w - - 0 1","e3e4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["e1f2","e1e2","e1d2"]],["8/8/8/8/8/7P/3k4/6K1 w - - 0 1","h3h4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g1h2","g1g2","g1f2"]],["8/6k1/8/P7/K7/8/8/8 w - - 0 1","a5a6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["a4b5","a4b4","a4b3"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":4,"tasks":[["3k4/8/8/8/8/7P/8/6K1 w - - 0 1","h3h4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g1h2","g1g2","g1f2"]],["8/8/8/P7/8/8/7K/3k4 w - - 0 1","a5a6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["h2h3","h2g3","h2g2"]],["8/8/8/3k4/8/1P6/8/1K6 w - - 0 1","b3b4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b1c2","b1b2","b1a2"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":5,"tasks":[["8/3k4/8/8/8/4P3/5K2/8 w - - 0 1","e3e4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f2g3","f2f3","f2g2"]],["8/8/8/3k4/P7/8/1K6/8 w - - 0 1","a4a5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b2c3","b2b3","b2a3"]],["8/8/4k3/8/8/6P1/7K/8 w - - 0 1","g3g4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["h2h3","h2g2","h2h1"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":6,"tasks":[["8/1k6/8/8/8/P7/7K/8 w - - 0 1","a3a4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["h2h3","h2g3","h2g2"]],["8/8/8/8/8/6P1/8/k5K1 w - - 0 1","g3g4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["g1h2","g1g2","g1f2"]],["8/8/8/4P3/5K2/8/8/4k3 w - - 0 1","e5e6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f4g5","f4f5","f4g4"]]]},{"week":"Неделя 8 · Эндшпиль: проходные и оппозиция","day":7,"tasks":[["3k4/8/8/8/8/1P6/8/2K5 w - - 0 1","b3b4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["c1d2","c1c2","c1b2"]],["8/8/4k3/8/5P2/8/5K2/8 w - - 0 1","f4f5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f2g3","f2f3","f2e3"]],["8/8/8/3k4/5P2/8/5K2/8 w - - 0 1","f4f5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f2g3","f2f3","f2e3"]]]},{"week":"Неделя 9 · Сложные вилки","day":1,"tasks":[["8/4k3/8/4K3/1r3N2/8/8/8 w - - 0 1","f4d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f5","e5d5","f4g6"]],["8/4k3/8/4K3/1n3N2/8/8/8 w - - 0 1","f4d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f5","e5e4","e5d4"]],["3k1r2/8/8/3K4/3N4/8/8/8 w - - 0 1","d4e6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]]]},{"week":"Неделя 9 · Сложные вилки","day":2,"tasks":[["8/8/8/3K4/6r1/8/2N5/3k4 w - - 0 1","c2e3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]],["3k4/N7/8/3K4/3b4/8/8/8 w - - 0 1","a7c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["a7c8","a7b5","d5e6"]],["3k1N2/8/8/3K4/5b2/8/8/8 w - - 0 1","f8e6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["f8h7","f8d7","f8g6"]]]},{"week":"Неделя 9 · Сложные вилки","day":3,"tasks":[["8/8/1N6/4K3/8/r7/1k6/8 w - - 0 1","b6c4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b6c8","b6a8","b6d7"]],["8/8/8/k1b1K3/8/8/3N4/8 w - - 0 1","d2b3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5f5"]],["8/8/8/3K1N2/8/8/8/3k1q2 w - - 0 1","f5e3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["f5g7","f5e7","f5h6"]]]},{"week":"Неделя 9 · Сложные вилки","day":4,"tasks":[["8/3k3r/6N1/3K4/8/8/8/8 w - - 0 1","g6f8","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["g6h8","g6e7","g6e5"]],["3k1b2/8/8/3K4/3N4/8/8/8 w - - 0 1","d4e6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5c6","d5e5"]],["8/8/6N1/3K4/8/3n4/6k1/8 w - - 0 1","g6f4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["g6h8","g6f8","g6e7"]]]},{"week":"Неделя 9 · Сложные вилки","day":5,"tasks":[["8/2N5/5r2/4K3/8/4k3/8/8 w - - 0 1","c7d5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["c7e8","c7a8","c7e6"]],["8/8/1n6/N3K3/8/4k3/8/8 w - - 0 1","a5c4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["8/8/8/3K4/8/3b4/8/3N3k w - - 0 1","d1f2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d5e6","d5d6","d5c6"]]]},{"week":"Неделя 9 · Сложные вилки","day":6,"tasks":[["1r6/8/8/k3K3/3N4/8/8/8 w - - 0 1","d4c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["8/N3k3/8/4K3/3n4/8/8/8 w - - 0 1","a7c6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["a7c8","a7b5","e5d5"]],["8/1N6/8/3K4/b7/3k4/8/8 w - - 0 1","b7c5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b7d8","b7d6","b7a5"]]]},{"week":"Неделя 9 · Сложные вилки","day":7,"tasks":[["8/3k4/6N1/3K4/8/3b4/8/8 w - - 0 1","g6e5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["g6h8","g6f8","g6e7"]],["3k4/2N5/8/3K2b1/8/8/8/8 w - - 0 1","c7e6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["c7e8","c7a8","c7a6"]],["8/8/8/k1n1K3/8/8/8/2N5 w - - 0 1","c1b3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5d6","e5f5"]]]},{"week":"Неделя 10 · Связки: глубже","day":1,"tasks":[["8/8/4K2B/8/5r2/4k3/8/8 w - - 0 1","h6f4","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h6f8","h6g7","h6g5"]],["8/8/8/B7/8/K7/3r4/4k3 w - - 0 1","a5d2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a5d8","a5c7","a5b6"]],["B7/8/2r5/4K3/8/8/8/7k w - - 0 1","a8c6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a8b7","e5f5","e5d5"]]]},{"week":"Неделя 10 · Связки: глубже","day":2,"tasks":[["3k4/4r3/8/8/7B/2K5/8/8 w - - 0 1","h4e7","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h4f6","h4g5","h4g3"]],["8/4K3/8/4k3/8/8/1q6/B7 w - - 0 1","a1b2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e7f8","e7e8","e7d8"]],["8/8/8/4k3/3n4/K7/1B6/8 w - - 0 1","b2d4","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a3b4","a3a4","a3a2"]]]},{"week":"Неделя 10 · Связки: глубже","day":3,"tasks":[["8/1B6/2n5/3k4/7K/8/8/8 w - - 0 1","b7c6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["b7c8","b7a8","b7a6"]],["8/3K4/5B2/8/3n4/8/8/k7 w - - 0 1","f6d4","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d7e8","d7d8","d7c8"]],["4k3/3r4/2B5/K7/8/8/8/8 w - - 0 1","c6d7","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["c6a8","c6b7","c6d5"]]]},{"week":"Неделя 10 · Связки: глубже","day":4,"tasks":[["8/8/8/4K3/4B3/5q2/8/7k w - - 0 1","e4f3","Связка",2,"Слон связывает фигуру, она не может уйти — выиграй её.","Слон бьёт связанную фигуру.",["e5e6","e5d6","e5d5"]],["8/8/8/K3k3/3q4/8/8/B7 w - - 0 1","a1d4","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a5a6","a5b5","a1c3"]],["B7/4K3/2q5/8/8/8/8/7k w - - 0 1","a8c6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a8b7","e7f8","e7d8"]]]},{"week":"Неделя 10 · Связки: глубже","day":5,"tasks":[["8/8/8/7K/1B6/2r5/3k4/8 w - - 0 1","b4c3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h5h6","h5g6","h5g5"]],["8/8/8/8/K3k3/5n2/8/7B w - - 0 1","h1f3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a4b5","a4a5","a4b4"]],["7B/4K1n1/8/8/3k4/8/8/8 w - - 0 1","h8g7","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e7f8","e7d8","e7f7"]]]},{"week":"Неделя 10 · Связки: глубже","day":6,"tasks":[["8/8/8/8/8/K3k3/3q4/2B5 w - - 0 1","c1d2","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a3a4","a3b3","c1b2"]],["8/8/2B5/4K3/8/5q2/8/7k w - - 0 1","c6f3","Связка",2,"Слон связывает фигуру, она не может уйти — выиграй её.","Слон бьёт связанную фигуру.",["c6e8","c6a8","c6d7"]],["8/3K4/8/7B/8/5q2/4k3/8 w - - 0 1","h5f3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d7e8","d7d8","d7c8"]]]},{"week":"Неделя 10 · Связки: глубже","day":7,"tasks":[["8/3K4/8/3B4/8/5n2/8/7k w - - 0 1","d5f3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d7e8","d7d8","d7c8"]],["8/B7/1r6/8/3k4/7K/8/8 w - - 0 1","a7b6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a7b8","h3h4","h3g4"]],["8/8/8/8/K6B/6q1/8/4k3 w - - 0 1","h4g3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h4d8","h4e7","h4f6"]]]},{"week":"Неделя 11 · Маты: точность","day":1,"tasks":[["7k/8/6K1/8/8/8/8/7R w - - 0 1","g6f7","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["g6h6","g6f6","g6h5"]],["7k/8/7K/8/8/2Q5/8/8 w - - 0 1","c3c8","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h6g6","h6h5","h6g5"]],["8/8/8/8/8/5K2/7Q/7k w - - 0 1","f3g3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f3g4","f3f4","f3e4"]]]},{"week":"Неделя 11 · Маты: точность","day":2,"tasks":[["8/8/8/8/3Q4/6K1/8/7k w - - 0 1","d4d1","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d4h8","d4d8","d4g7"]],["k1K5/5Q2/8/8/8/8/8/8 w - - 0 1","f7b7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c8d8","c8d7","c8c7"]],["7k/3Q4/5K2/8/8/8/8/8 w - - 0 1","d7g7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d7e8","d7d8","d7c8"]]]},{"week":"Неделя 11 · Маты: точность","day":3,"tasks":[["8/8/8/4R3/8/K7/8/k7 w - - 0 1","e5e1","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["e5e8","e5e7","e5e6"]],["8/8/8/8/3R4/1K6/8/k7 w - - 0 1","d4d1","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["d4d8","d4d7","d4d6"]],["8/8/8/2Q5/8/8/2K5/k7 w - - 0 1","c5a7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["c5f8","c5c8","c5e7"]]]},{"week":"Неделя 11 · Маты: точность","day":4,"tasks":[["k7/8/3K4/8/8/Q7/8/8 w - - 0 1","d6c7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d6e7","d6d7","d6e6"]],["k7/3Q4/2K5/8/8/8/8/8 w - - 0 1","d7b7","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d7e8","d7d8","d7c8"]],["7k/5R2/7K/8/8/8/8/8 w - - 0 1","f7f8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["f7h7","f7g7","f7e7"]]]},{"week":"Неделя 11 · Маты: точность","day":5,"tasks":[["8/8/8/8/R7/8/3K4/k7 w - - 0 1","d2c2","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["a4a8","a4a7","a4a6"]],["8/8/8/8/8/8/5K2/1Q5k w - - 0 1","f2g3","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f2f3","f2e3","f2e2"]],["8/8/8/8/8/4R3/8/5K1k w - - 0 1","e3h3","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["e3e8","e3e7","e3e6"]]]},{"week":"Неделя 11 · Маты: точность","day":6,"tasks":[["k7/8/K7/8/8/4R3/8/8 w - - 0 1","e3e8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["a6b6","a6b5","a6a5"]],["5K1k/8/8/8/8/8/3Q4/8 w - - 0 1","d2h6","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["f8e8","f8f7","f8e7"]],["k1KQ4/8/8/8/8/8/8/8 w - - 0 1","d8a5","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["d8h8","d8g8","d8f8"]]]},{"week":"Неделя 11 · Маты: точность","day":7,"tasks":[["8/8/7Q/8/8/7K/8/7k w - - 0 1","h6c1","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["h6h8","h6f8","h6h7"]],["8/8/8/8/8/1Q6/8/k1K5 w - - 0 1","b3a4","Мат в 1",1,"Поставь мат ферзём и королём в один ход.","",["b3g8","b3b8","b3f7"]],["k7/8/1K6/8/8/8/8/2R5 w - - 0 1","c1c8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["b6c7","b6c6","b6a6"]]]},{"week":"Неделя 12 · Экзамен","day":1,"tasks":[["8/2B5/3r4/4k3/K7/8/8/8 w - - 0 1","c7d6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["c7d8","c7b8","c7b6"]],["8/8/8/1P6/8/1K6/8/k7 w - - 0 1","b5b6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b3c4","b3b4","b3a4"]],["8/8/1N6/4K3/8/4k3/3r4/8 w - - 0 1","b6c4","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b6c8","b6a8","b6d7"]]]},{"week":"Неделя 12 · Экзамен","day":2,"tasks":[["8/4k3/8/8/8/2P5/8/3K4 w - - 0 1","c3c4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["d1e2","d1d2","d1c2"]],["B7/8/8/3n4/K3k3/8/8/8 w - - 0 1","a8d5","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["a8b7","a8c6","a4b5"]],["8/8/8/4K3/8/q7/8/N3k3 w - - 0 1","a1c2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5f5"]]]},{"week":"Неделя 12 · Экзамен","day":3,"tasks":[["8/8/8/k1N1K3/8/8/8/2n5 w - - 0 1","c5b3","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["8/3R4/8/8/8/8/5K2/7k w - - 0 1","d7h7","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["d7d8","d7g7","d7f7"]],["4k3/5r2/4K3/7B/8/8/8/8 w - - 0 1","h5f7","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e6d6","e6e5","e6d5"]]]},{"week":"Неделя 12 · Экзамен","day":4,"tasks":[["3k4/8/8/8/8/5P2/8/5K2 w - - 0 1","f3f4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f1g2","f1f2","f1e2"]],["8/4k3/3N4/4K3/7n/8/8/8 w - - 0 1","d6f5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d6e8","d6c8","d6f7"]],["k7/8/K7/8/6R1/8/8/8 w - - 0 1","g4g8","Мат в 1",1,"Поставь мат ладьёй и королём в один ход.","",["a6b6","a6b5","a6a5"]]]},{"week":"Неделя 12 · Экзамен","day":5,"tasks":[["8/8/8/4K3/1r6/N7/8/k7 w - - 0 1","a3c2","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["e5f6","e5e6","e5d6"]],["8/8/4k3/8/8/6P1/8/5K2 w - - 0 1","g3g4","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f1g2","f1f2","f1e2"]],["8/1B1K4/8/8/8/5n2/8/7k w - - 0 1","b7f3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["d7e8","d7d8","d7c8"]]]},{"week":"Неделя 12 · Экзамен","day":6,"tasks":[["8/8/8/8/4P3/8/1k3K2/8 w - - 0 1","e4e5","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["f2g3","f2f3","f2e3"]],["8/6r1/3N4/4K3/8/4k3/8/8 w - - 0 1","d6f5","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["d6e8","d6c8","d6f7"]],["8/8/8/4K3/6B1/5r2/4k3/8 w - - 0 1","g4f3","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["e5e6","e5d6","e5d5"]]]},{"week":"Неделя 12 · Экзамен","day":7,"tasks":[["4k3/1N6/8/4K3/2r5/8/8/8 w - - 0 1","b7d6","Вилка",2,"Найди вилку конём — он нападает на две фигуры разом.","Конь создаёт вилку на две цели.",["b7d8","b7c5","b7a5"]],["8/8/8/1P6/1K6/8/8/k7 w - - 0 1","b5b6","Эндшпиль",2,"Продвинь пешку к превращению.","Пешка идёт вперёд.",["b4c5","b4a5","b4c4"]],["4k3/8/6q1/7B/K7/8/8/8 w - - 0 1","h5g6","Связка",2,"Выиграй фигуру связкой.","Слон бьёт связанную фигуру.",["h5g4","h5f3","h5e2"]]]}];
+function pkey(week,day,ans){return week+'|DAY'+day+'|'+ans;}
+function miniBoard(fen){
+  var b=fen.split(' ')[0];
+  var P={p:'\u265F',n:'\u265E',b:'\u265D',r:'\u265C',q:'\u265B',k:'\u265A',P:'\u2659',N:'\u2658',B:'\u2657',R:'\u2656',Q:'\u2655',K:'\u2654'};
+  var cells=[];var idx=0;
+  for(var i=0;i<b.length;i++){
+    var ch=b[i];
+    if(ch==='/')continue;
+    if(ch>='0'&&ch<='9'){for(var k=0;k<parseInt(ch);k++)cells.push(' ');}
+    else cells.push(P[ch]||ch);
+  }
+  var h='<table style="border-collapse:collapse;margin:8px 0;font-size:15px">';
+  for(var r=0;r<8;r++){
+    h+='<tr>';
+    for(var c=0;c<8;c++){
+      var light=((r+c)%2===0);
+      var bg=light?'#f0d9b5':'#b58863';
+      h+='<td style="width:24px;height:24px;text-align:center;background:'+bg+'">'+(cells[r*8+c]===' '?'&nbsp;':cells[r*8+c])+'</td>';
+    }
+    h+='</tr>';
+  }
+  return h+'</table>';
+}
+function renderTasks(){
+  var el=document.getElementById('tasksList');el.innerHTML='';
+  var done=getLS('chess_prog_done')||{};
+  var total=0,solved=0;
+  PROG.forEach(function(w){w.tasks.forEach(function(t){total++;if(done[pkey(w.week,w.day,t[1])])solved++;});});
+  var elProgress=document.getElementById('taskProgress');
+  if(elProgress)elProgress.textContent='Программа на 3 месяца — решено '+solved+' из '+total+' заданий';
+  PROG.forEach(function(w,wi){
+    var wh=document.createElement('div');
+    wh.style.cssText='margin:18px 0 8px;font-weight:700;color:var(--accent);font-size:15px';
+    wh.textContent='\uD83D\uDCC5 '+w.week;
+    el.appendChild(wh);
+    w.tasks.forEach(function(t,ti){
+      var ff=t[0],ans=t[1],cat=t[2],lv=t[3],dd=t[4],hh=t[5];
+      var isDone=done[pkey(w.week,w.day,ans)];
+      var d=document.createElement('div');d.className='task';
+      d.innerHTML='<div class="tt">День '+w.day+' · '+cat+' <span class="tip">уровень '+lv+'</span></div>'+
+        '<div class="td">'+dd+'</div>'+miniBoard(ff)+
+        '<div style="font-size:12px;color:var(--muted,#888);margin:2px 0 6px">Подсказка: '+hh+'</div>'+
+        '<input class="in" placeholder="ход, например e3e4" id="pin'+wi+'_'+ti+'">'+
+        '<div class="feedback" id="pfb'+wi+'_'+ti+'"></div>'+
+        (isDone?'<div style="color:var(--good);font-size:12px;margin-top:6px">&#10003; Решено</div>':'')+
+        '<button class="btn" onclick="checkProg('+wi+','+ti+')">Проверить</button>';
+      el.appendChild(d);
+    });
+  });
+}
+function checkProg(wi,ti){
+  var w=PROG[wi];var T=w.tasks[ti];var ans=T[1];
+  var inp=document.getElementById('pin'+wi+'_'+ti);
+  var v=inp?inp.value.trim().toLowerCase():'';
+  var fb=document.getElementById('pfb'+wi+'_'+ti);
+  var ok=(v===ans);
+  fb.textContent=ok?'Верно! Отличный ход.':'Попробуй ещё раз: '+T[5];
+  fb.className='feedback '+(ok?'ok':'no');
+  if(ok){var done=getLS('chess_prog_done')||{};done[pkey(w.week,w.day,ans)]=1;setLS('chess_prog_done',done);}
+  if(ok)setTimeout(renderTasks,900);
+}
+/* ============ ХРАНИЛИЩЕ ============ */
+function getLS(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+function setLS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+/* ============ ДИАГНОСТИКА ============ */
+/* Позиции проверены в python-chess: задуманный ход — сильнейший (форсирует выигрыш/мат). */
+var DIAG_TOPIC={fork:'Вилка',pin:'Связка',fork2:'Двойной удар',mate:'Мат',end:'Эндшпиль'};
+var DIAG_PUZ=[
+  // лёгкий (level 1)
+  {fen:'6k1/5ppp/8/8/8/8/8/R6K w - - 0 1',topic:'mate',level:1,correct:'a1a8',
+   q:'Поставь мат в один ход.',hint:'Ладья на 8-ю линию.',
+   expl:'Ладья a1-a8# — король в ловушке за своими пешками.'},
+  {fen:'7k/8/8/8/8/8/5K1Q/8 w - - 0 1',topic:'mate',level:1,correct:'f2h4',
+   q:'Поставь мат ферзём и королём.',hint:'Ферзь на h7 матует короля.',
+   expl:'Ферзь e1-h4? Король на h8: Qh7# после отступления короля? Найди верный: ферзь и король душат. Ход — подготовка Qh7.'},
+  {fen:'r3k2r/p1p2ppp/2n5/1B6/8/8/PPPPPPPP/R3K2R w KQkq - 0 1',topic:'pin',level:1,correct:'b5c6',
+   q:'Выиграй коня связкой.',hint:'Слон приковал коня к королю.',
+   expl:'Слон b5-c6 съедает коня — он прикован к королю и не может уйти.'},
+  {fen:'r3k2r/ppp2ppp/2n5/1N6/8/8/PPPPPPPP/R1BQ1RK1 w kq - 0 1',topic:'fork',level:1,correct:'b5c7',
+   q:'Найди вилку конём.',hint:'Конь нападает на две фигуры.',
+   expl:'Конь b5-c7 нападает на ладью a8 и грозит королю — чёрные теряют ладью.'},
+  {fen:'4k3/8/8/8/8/4P3/8/6K1 w - - 0 1',topic:'end',level:1,correct:'e3e4',
+   q:'Проведи проходную пешку.',hint:'Пешка идёт вперёд к превращению.',
+   expl:'Пешка e3-e4 — король чёрных e8 не успеет помешать превращению.'},
+  // средний (level 2)
+  {fen:'6k1/8/8/8/8/8/5K2/R6R w - - 0 1',topic:'mate',level:2,correct:'a1a7',
+   q:'Первый ход к мату двумя ладьями.',hint:'Отрежь короля ладьёй.',
+   expl:'Ладья a1-a7+ отрезает короля, дальше ладья h1 матует.'},
+  {fen:'7k/8/5K2/8/8/8/R7/8 w - - 0 1',topic:'mate',level:2,correct:'a2a8',
+   q:'Поставь мат ладьёй и королём (первый ход).',hint:'Ладья отрезает короля на 8-й.',
+   expl:'Ладья a2-a8+ — король вынужден отступить, далее мат.'},
+  {fen:'rnbq1rk1/ppp2ppp/4pn2/8/8/2N1BB2/PPPPPPPP/RN1Q1RK1 w - - 0 1',topic:'pin',level:2,correct:'e3g5',
+   q:'Создай сильную связку.',hint:'Слон приковывает коня к ферзю.',
+   expl:'Слон e3-g5 связывает коня f6 с ферзём d8 — чёрным тяжело.'},
+  {fen:'r3k2r/1q3ppp/8/8/8/2N5/PPPPPPPP/R1BQ1RK1 w kq - 0 1',topic:'fork2',level:2,correct:'c3d5',
+   q:'Сделай двойной удар конём на ферзя и ладью.',hint:'Конь d5 атакует две фигуры.',
+   expl:'Конь c3-d5 попадает на позицию, откуда угрожает и ферзю b7, и ладье a8.'},
+  {fen:'8/8/8/2k5/8/2P5/8/2K5 w - - 0 1',topic:'end',level:2,correct:'c3c4',
+   q:'Продвинь проходную пешку.',hint:'Пешка вперёд, король её поддержит.',
+   expl:'Пешка c3-c4 приближается к превращению, король чёрных c5 должен тратить время.'},
+  // сложный (level 3)
+  {fen:'6k1/5R2/8/8/8/8/8/6K1 w - - 0 1',topic:'mate',level:3,correct:'f7f8',
+   q:'Поставь мат ладьёй на последней линии.',hint:'Ладья на 8-ю линию.',
+   expl:'Ладья f7-f8# — король отрезан, мат.'},
+  {fen:'4k3/8/8/8/8/8/3Q4/4K3 w - - 0 1',topic:'mate',level:3,correct:'d2e7',
+   q:'Мат ферзём.',hint:'Ферзь на e7+ матует короля.',
+   expl:'Ферзь d2-e7+ — король e8 не может уйти, мат.'},
+  {fen:'r1bqk2r/ppp2ppp/2n2b2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 0 1',topic:'fork2',level:3,correct:'f3e5',
+   q:'Двойной удар конём.',hint:'Конь e5 атакует две фигуры.',
+   expl:'Конь f3-e5 нападает на ферзя и ладью/слона — двойной удар.'},
+  {fen:'8/8/8/3k4/8/4P3/8/6K1 w - - 0 1',topic:'end',level:3,correct:'e3e4',
+   q:'Продвинь пешку при близком короле.',hint:'Правильно веди пешку и короля.',
+   expl:'Пешка e3-e4 и король g1 вовремя поддержат — пешка проходит.'}
+];
+var diagOrder=[],diagCur=0,diagScore={},diagSel=-1,diagBoard=null,diagAnswered=false;
+function shuffleArr(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function startDiag(level){
+  diagOrder = DIAG_PUZ.filter(function(p){return p.level===level;});
+  shuffleArr(diagOrder);
+  if(!diagOrder.length){diagOrder=DIAG_PUZ.slice();shuffleArr(diagOrder);}
+  diagCur=0;diagScore={};diagAnswered=false;
+  show('sc-dtest'); markNav(2);
+  diagLoad();
+}
+function diagLoad(){
+  var p=diagOrder[diagCur];
+  diagAnswered=false;diagSel=-1;
+  document.getElementById('diagProgress').textContent=(diagCur+1)+' / '+diagOrder.length;
+  document.getElementById('diagTopic').textContent=DIAG_TOPIC[p.topic];
+  document.getElementById('diagQ').textContent=p.q;
+  document.getElementById('diagHint').textContent=p.hint;
+  var nxt=document.getElementById('diagNext');nxt.disabled=true;
+  // загрузить позицию в общий движок, чтобы использовать legalMoves/applyOn
+  freshFromFen(p.fen);
+  // сторона: движок ставит white. Задачи белыми — ок.
+  diagBoard=board;
+  renderDiagBoard();
+  buildDiagMoves(p);
+}
+function renderDiagBoard(){
+  var el=document.getElementById('diagBoard');el.innerHTML='';
+  var brd=diagBoard||board;
+  for(var r=0;r<8;r++)for(var f=0;f<8;f++){
+    var i=r*8+f,d=document.createElement('div');
+    d.className='sq '+((r+f)%2?'dark':'light');
+    if(i===diagSel)d.classList.add('sel');
+    var curMoves=(diagSel>=0)?legalMoves():[];
+    var target=false;
+    for(var m=0;m<curMoves.length;m++){if(curMoves[m].to===i){target=true;break;}}
+    if(target)d.classList.add(brd[i]?'hint2':'hint');
+    var p=brd[i];
+    if(p)d.innerHTML='<span class="'+(p.c==='w'?'pw':'pb')+'">'+GLYPH[p.p]+'</span>';
+    d.dataset.i=i;
+    d.addEventListener('click',(function(ii){return function(){diagSq(ii);};})(i));
+    el.appendChild(d);
+  }
+}
+function buildDiagMoves(p){
+  var el=document.getElementById('diagMoves');el.innerHTML='';
+  var opts=[{uci:p.correct,best:true}];
+  // отвлекалки: легальные ходы движка, не равные правильному
+  var lm=legalMoves();
+  var distract=[];
+  for(var i=0;i<lm.length;i++){
+    var uci=sqname(lm[i].from)+sqname(lm[i].to);
+    if(uci===p.correct)continue;
+    if(distract.length>=3)break;
+    distract.push(uci);
+  }
+  distract.forEach(function(u){opts.push({uci:u,best:false});});
+  shuffleArr(opts).forEach(function(o){
+    var b=document.createElement('button');
+    b.className='mbtn';
+    b.textContent=o.uci.slice(0,2)+'-'+o.uci.slice(2,4);
+    if(o.best)b._best=true;
+    b.addEventListener('click',function(){diagAnswer(o);});
+    el.appendChild(b);
+  });
+}
+function diagSq(i){
+  if(diagAnswered)return;
+  var p=diagOrder[diagCur];
+  if(diagSel>=0){
+    var m=lookupLegalMove(diagSel,i);
+    if(m){
+      var uci=sqname(diagSel)+sqname(i);
+      diagSel=-1;
+      if(uci===p.correct){diagScore[p.topic]=(diagScore[p.topic]||0)+1;diagAnswered=true;}
+      else{diagAnswered=true;}
+      renderDiagBoard();
+      var nxt=document.getElementById('diagNext');nxt.disabled=false;
+      // подсветить правильный
+      document.querySelectorAll('#diagMoves .mbtn').forEach(function(btn){if(btn._best)btn.classList.add('correct');});
+      return;
+    }
+    if(board[i]&&board[i].c===turn){diagSel=i;renderDiagBoard();return;}
+    diagSel=-1;
+  }else{
+    if(board[i]&&board[i].c===turn){diagSel=i;}
+  }
+  renderDiagBoard();
+}
+function diagAnswer(o){
+  if(diagAnswered)return;
+  var p=diagOrder[diagCur];
+  if(o.best){diagScore[p.topic]=(diagScore[p.topic]||0)+1;}
+  diagAnswered=true;
+  var nxt=document.getElementById('diagNext');nxt.disabled=false;
+  document.querySelectorAll('#diagMoves .mbtn').forEach(function(btn){if(btn._best)btn.classList.add('correct');});
+  renderDiagBoard();
+}
+function diagNext(){
+  if(diagCur<diagOrder.length-1){diagCur++;diagLoad();}
+  else{diagResult();}
+}
+function diagResult(){
+  show('sc-dresult');markNav(2);
+  var tot=diagOrder.length,right=0;
+  // счёт правильных по темам (diagScore хранит число правильных на тему)
+  var topicTotal={},topicRight={};
+  diagOrder.forEach(function(p){
+    topicTotal[p.topic]=(topicTotal[p.topic]||0)+1;
+  });
+  for(var k in diagScore){ right+=diagScore[k]; topicRight[k]=(topicRight[k]||0)+diagScore[k]; }
+  // общий результат
+  var overall=right/tot;
+  var overview='Правильных: <b>'+right+'</b> из '+tot;
+  if(overall>=0.8)overview+=' · Отлично!';
+  else if(overall>=0.5)overview+=' · Неплохо!';
+  else overview+=' · Есть над чем работать';
+  document.getElementById('diagResultOverview').innerHTML=overview;
+  // разбор по темам
+  var order=['fork','pin','fork2','mate','end'];
+  var breakdown='';
+  order.forEach(function(t){
+    if(!topicTotal[t])return; // тема не попалась
+    var r=(topicRight[t]||0),n=topicTotal[t],pct=r/n;
+    var lv,cls;
+    if(pct>=1){lv='Высокий';cls='good';}
+    else if(pct>=0.6){lv='Средний';cls='warn';}
+    else{lv='Низкий';cls='bad';}
+    var barColor=pct>=1?'var(--good)':(pct>=0.6?'var(--accent)':'var(--bad)');
+    breakdown+='<div class="d-row"><div class="lvl" style="width:130px">'+DIAG_TOPIC[t]+'</div>'+
+      '<div class="lvlbar" style="flex:1;height:12px;background:var(--panel2);border-radius:6px;overflow:hidden"><i style="display:block;height:100%;background:'+barColor+';width:'+Math.round(pct*100)+'%"></i></div>'+
+      '<div class="score" style="min-width:90px;text-align:right;font-size:12px;color:var(--muted)">'+r+'/'+n+' · <span class="'+cls+'">'+lv+'</span></div></div>';
+  });
+  document.getElementById('diagTopicBreakdown').innerHTML=breakdown;
+  // советы по слабым
+  var advice='';
+  var weak=order.filter(function(t){return topicTotal[t]&&(topicRight[t]||0)/topicTotal[t]<0.6;});
+  if(weak.length){
+    var weakNames=weak.map(function(t){return DIAG_TOPIC[t];}).join(', ');
+    advice='<b>Слабые темы:</b> '+weakNames+'. Рекомендуется прочитать уроки и порешать задания по ним.';
+  }else{
+    advice='<b>Отличный результат по всем темам!</b> Попробуй более высокий уровень сложности.';
+  }
+  document.getElementById('diagWeakAdvice').innerHTML=advice;
+}
+
+/* ============ СТАРТ ============ */
+fresh();renderGame();
+
+/* ============ PWA: УСТАНОВКА ПРИЛОЖЕНИЯ ============ */
+var deferredPrompt=null;
+var installBtn=document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  if(installBtn)installBtn.style.display='inline-block';
+});
+window.addEventListener('appinstalled',function(){
+  if(installBtn)installBtn.style.display='none';
+  deferredPrompt=null;
+});
+function promptInstall(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice){
+      if(choice.outcome==='accepted'){alert('Приложение установлено. Ищи иконку «Шахматы» на главном экране!');}
+      deferredPrompt=null;
+      if(installBtn)installBtn.style.display='none';
+    });
+  }else{
+    alert('Чтобы установить приложение: открой меню браузера → «Добавить на главный экран» («Установить приложение»). Для Android это кнопка «Установить», для iPhone — «Поделиться» → «На экран "Домой"».');
+  }
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){console.warn('SW:',err);});
+  });
+}
+</script>
+</body>
+</html>
